@@ -31,7 +31,7 @@ metadata:
   repository: github:example/AnyAIx402
 
 product:
-  mode: payment-adapter # decision required: payment-adapter | ai-gateway | separate-planes
+  mode: payment-adapter # accepted MVP; AI gateway is a separate future plane
   decisionsPath: docs/DECISIONS_REQUIRED.md
   acceptedAdrGlob: docs/adr/*.md
 
@@ -108,10 +108,13 @@ checks:
 payments:
   enabled: false # remains false until architecture gates pass
   x402:
-    protocolVersion: "PIN_REQUIRED"
+    protocolVersion: 2
     merchantOwnsSettlement: true
     network: "eip155:8453"
-    asset: "CAIP19_USDC_ID_REQUIRED"
+    asset: "eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+    feeBps: 20
+    maxFeeBps: 100
+    collectFeeOnchain: false
   rpc:
     primaryRef: secret://payments/base-rpc-primary-url
     fallbackRef: secret://payments/base-rpc-fallback-url
@@ -165,7 +168,7 @@ notifications:
   securityWebhookRef: secret://notifications/security-webhook
 ```
 
-Placeholders such as `PIN_REQUIRED`, `DECISION_REQUIRED`, and `REDACTED_DIGEST` make validation
+Placeholders such as `DECISION_REQUIRED` and `REDACTED_DIGEST` make validation
 fail until intentionally replaced with approved non-secret values.
 
 ## 3. Secret reference catalog

@@ -1,30 +1,30 @@
 # Decisions required
 
-Status: open. Priority order is intentional. Implementation beyond protocol spikes is blocked
-until the applicable decision is approved and its ADR marked accepted.
+Status: MVP defaults resolved on 2026-08-25. Reversible engineering defaults are authorized for
+implementation. Legal, commercial, and production-release decisions remain explicit gates.
 
 ## Decision register
 
-| ID | Priority | Decision | Recommended default | Blocking impact |
-| --- | --- | --- | --- | --- |
-| D1 | P0 | Product identity | AnyX payment adapter first; reserve AnyAI gateway as a separate plane/product | Blocks scope, naming, architecture, APIs, staffing, GTM |
-| D2 | P0 | Custody and signing | Self-custodial: swap output to payer; payer signs EIP-3009 | Blocks value flow, wallet API, contracts, legal model |
-| D3 | P0 | x402 version and settlement owner | Pin current v2; merchant owns verify/settle | Blocks wire protocol, state machine, facilitator integration |
-| D4 | P0 | Fee formula and collection | One disclosed bps fee, integer round-up, no minimum/flat fee initially | Blocks quotes, execution, receipts, economics |
-| D5 | P0 | MVP tokens/routes | Base USDT and WETH first; qualify cbBTC/native ETH by execution tests | Blocks token registry, DEX scope, acceptance suite |
-| D6 | P0 | HTTP replay and data handling | Preserve replayable request; metadata-only storage; strict SSRF/redirect policy | Blocks SDK/API and privacy controls |
-| D7 | P0 | Package/product naming | `@anyx/sdk` and AnyX payment terminology pending trademark/npm checks | Blocks public API and publishing |
-| D8 | P0 | Contract necessity | No custom value-moving contract in MVP | Blocks audit/deployment scope |
-| D9 | P1 | DEX provider and commercial terms | One provider behind interface; second after conformance | Blocks production quote/execution adapter |
-| D10 | P1 | Licensing/open-core boundary | Apache-2.0 SDK/specs; hosted control plane separately licensed if needed | Blocks repository headers, contributions, partner promises |
-| D11 | P1 | Identity, metering, and billing | API keys meter hosted services, never wallet authority; billing post-MVP | Blocks hosted API account model |
-| D12 | P1 | AI gateway provider scope | If approved: OpenAI direct + OpenAI-compatible; Anthropic validates abstraction later | Blocks inference API and provider adapters |
-| D13 | P1 | Retention and observability | Payment metadata/hashes only; no paid bodies or prompts by default | Blocks schemas, logs, privacy notice |
-| D14 | P1 | Facilitator fallback | One pinned facilitator initially; add fallback only with equivalent conformance | Blocks production resilience claims |
-| D15 | P1 | Mainnet release authority | Human service + security approval, low-value canary, automatic stop | Blocks production deployment |
-| D16 | P2 | Inventory/cross-chain business | Separate custodial treasury product with double-entry ledger | Blocks CCTP/float work |
-| D17 | P2 | Lightning/legal jurisdiction | Do not build until counsel, liquidity, refund, sanctions and custody model approved | Blocks BTC/Lightning |
-| D18 | P2 | Partner revenue share | Defer; define ledger, attribution, tax, sanctions and payout approvals first | Blocks partner settlement |
+| ID | Status | MVP decision or remaining gate |
+| --- | --- | --- |
+| D1 | Resolved for MVP | AnyX x402 payment-adapter kernel first; AI inference is a separate future plane. |
+| D2 | Resolved for MVP | Self-custodial Base-only flow; swap output belongs to payer; payer signs. No AnyX wallet, float, bridge, Lightning, or treasury movement. |
+| D3 | Resolved for MVP | x402 v2; resource server owns facilitator verify/settle; client never pre-settles. |
+| D4 | Resolved for MVP | Disclosed fee-on-top using integer round-up; production default 20 bps, local/test 0, configurable cap; no onchain fee collection yet. |
+| D5 | Resolved for MVP | Base canonical USDC settlement; native ETH/WETH and USDT acquisition inputs. cbBTC remains route-qualified follow-up. CAIP IDs and address allowlists are authoritative. |
+| D6 | Resolved for MVP | Replay only explicitly replayable requests; append-only metadata/hashes; no arbitrary paid bodies or secrets by default. |
+| D7 | Resolved for MVP | Public client package is `@anyx/sdk`; internal packages use `@anyx/*`. Publication still requires namespace/trademark checks. |
+| D8 | Resolved for MVP | No custom value-moving contract. |
+| D9 | Open external | DEX provider, route qualification, API terms, calldata guarantees, and fee mechanics. |
+| D10 | Partially resolved | Public SDK/protocol packages use Apache-2.0. Repository-wide and hosted control-plane licensing await ownership/legal decisions. |
+| D11 | Deferred | Hosted identity, metering, and billing. API keys must never grant wallet authority. |
+| D12 | Deferred | AI inference gateway and provider scope are outside this milestone. |
+| D13 | Resolved for MVP | Append-only payment/receipt metadata and hashes only; explicit approved retention period remains open. |
+| D14 | Open external | Facilitator selection and conformance; no fallback before equivalent conformance. |
+| D15 | Open external | Mainnet release requires service/security approval, legal readiness, low-value canary, and automatic stop controls. |
+| D16 | Deferred/legal gate | Inventory and cross-chain movement are a separate custodial treasury product. |
+| D17 | Deferred/legal gate | Lightning requires counsel, custody, liquidity, refund, sanctions, and jurisdiction decisions. |
+| D18 | Deferred/business gate | Partner revenue share requires accounting, attribution, tax, sanctions, and payout controls. |
 
 ## Decision briefs
 
@@ -39,8 +39,9 @@ The repository name “AnyAIx402” may imply an inference gateway.
 separate AI gateway and payment planes with independent APIs, data, SLOs, deployments, and
 security boundaries.
 
-**Approval needed.** Product owner and lead architect. Record in
-[ADR 0003](adr/0003-ai-payment-plane-separation.md).
+**Resolution.** Accepted for the MVP in
+[ADR 0003](adr/0003-ai-payment-plane-separation.md). Product naming and future inference scope
+remain business decisions.
 
 ### D2 Custody and signing
 
@@ -52,8 +53,9 @@ funds from a bare wallet address or sign for payer-owned USDC.
 **Default.** Swap output goes to payer; payer signs EIP-3009. No server payer key, float, or
 inventory in MVP.
 
-**Approval needed.** Product, payments, security, and legal. Record in
-[ADR 0001](adr/0001-self-custodial-base-mvp.md).
+**Resolution.** Accepted for the MVP in
+[ADR 0001](adr/0001-self-custodial-base-mvp.md). Counsel must approve production claims and
+operations; that gate does not require introducing custody.
 
 ### D3 x402 version and settlement ownership
 
@@ -64,8 +66,9 @@ before resource retry ([AGENTS lines 353–397,443–474](source/AGENTS.md#L353-
 `PAYMENT-REQUIRED`/`PAYMENT-SIGNATURE`/`PAYMENT-RESPONSE` schemas. Merchant invokes verify and
 settle. Use CAIP-2/CAIP-19.
 
-**Approval needed.** Protocol specialist and lead architect after executable conformance proof.
-Record in [ADR 0002](adr/0002-merchant-owned-x402-settlement.md).
+**Resolution.** Accepted for the MVP in
+[ADR 0002](adr/0002-merchant-owned-x402-settlement.md). Facilitator compatibility remains an
+executable external conformance gate.
 
 ### D4 Fee formula and collection
 
@@ -74,15 +77,17 @@ fees, optional flat fees, and no flat fees
 ([AGENTS lines 14–16,159–161](source/AGENTS.md#L14-L16);
 [llms lines 194–205](source/anyx-llms.txt#L194-L205)).
 
-**Default.** Configure one fee in basis points per qualified route. Define:
+**Decision.** Configure one disclosed fee-on-top in basis points per qualified route. Production
+configuration defaults to 20 bps; local/test fixtures use 0 bps. Enforce a configurable cap.
+Define:
 
 ```text
 requiredGrossUsdc = ceil(apiCostUsdc * 10_000 / (10_000 - feeBps))
 feeUsdc = requiredGrossUsdc - apiCostUsdc
 ```
 
-Use atomic integer units, disclose fee and rounding, bind both into the quote, and validate how
-the DEX route realizes the fee before launch. No minimum or flat fee initially.
+Use atomic integer units, disclose fee and rounding, and bind both into the quote. The MVP
+calculates but does not move or collect this fee onchain. No minimum or flat fee initially.
 
 **Blocking proof.** Property tests, legal classification, DEX commercial terms, and
 reconciliation.
@@ -92,9 +97,9 @@ reconciliation.
 **Conflict.** “Any ERC-20” is not safe: fee-on-transfer, rebasing, malicious and illiquid tokens
 violate assumptions. Token and phase lists conflict across source files.
 
-**Default.** Base USDT and WETH launch candidates. Add cbBTC and native ETH only after allowance,
-recipient, liquidity, price-impact, gas, and failure tests. Registry is address/CAIP based, not
-symbol based.
+**Decision.** Canonical Base USDC is settlement. Native ETH/WETH and USDT are first acquisition
+inputs. Add cbBTC only after allowance, recipient, liquidity, price-impact, gas, and failure
+tests. Registry is CAIP/address based, never symbol based.
 
 ### D6 HTTP replay and data handling
 
@@ -111,8 +116,8 @@ Reject non-replayable streams; do not retain resource bodies. Bind request finge
 ([lines 158–166](source/x402-universal-adapter-prd.md#L158-L166)); roadmap uses `@anyx/sdk`
 ([AGENTS lines 536–598](source/AGENTS.md#L536-L598)).
 
-**Default.** Use `@anyx/sdk`, `@anyx/mcp-server`, and integration-specific packages if npm,
-domain, organization, and trademark checks succeed. Keep class name provisional until D1.
+**Decision.** Use `@anyx/sdk` for the public client and `@anyx/*` for internal packages.
+Publishing remains conditional on npm namespace and trademark checks.
 
 ### D8 Contract necessity
 
@@ -135,8 +140,9 @@ Do not claim fallback until equivalent behavior is conformance-tested.
 ([llms lines 207–212](source/anyx-llms.txt#L207-L212);
 [low-hanging-fruit lines 352–389](source/x402-low-hanging-fruit.md#L352-L389)).
 
-**Default.** Apache-2.0 for SDK, schemas, and examples; separately decide hosted-service license
-and contribution policy. Complete dependency and trademark review.
+**Decision.** Apache-2.0 for public SDK and protocol packages. Do not add a repository-wide
+license until ownership and legal status are clear. Hosted-service licensing, contribution
+policy, dependency review, and trademark review remain open.
 
 ### D11 Identity and billing
 

@@ -1,6 +1,6 @@
 # ADR 0003: Separate AI gateway and x402 payment planes
 
-- Status: Proposed
+- Status: Accepted for MVP
 - Date: 2026-08-25
 - Decision owners: product owner, lead architect, AI platform owner, security
 - Related: [D1](../DECISIONS_REQUIRED.md#d1-product-identity),
@@ -19,7 +19,7 @@ Combining inference and payments in one service would mix sensitive prompts with
 settlement data, couple failure domains, and allow nondeterministic components near value
 movement.
 
-## Proposed decision
+## Decision
 
 Use separate planes if AI inference enters scope:
 
@@ -48,6 +48,13 @@ runtime planes and have no payment or inference production credentials.
   output.
 - Cross-plane correlation uses opaque IDs and minimum metadata, not prompt or paid-content copies.
 
+## Rollback triggers
+
+Reopen only if a future approved product requires inference. That decision may add a separately
+deployed plane and versioned enforcement contract; it cannot merge prompts, provider credentials,
+or nondeterministic model output into payment authorization, routing gates, or deployment of
+production funds.
+
 ## Acceptance evidence
 
 - Product owner selects payment-only or separate-planes scope.
@@ -56,4 +63,5 @@ runtime planes and have no payment or inference production credentials.
 - Demonstration that AI provider outage cannot cause an unauthorized payment or ledger change.
 - Demonstration that payment denial cannot be overridden by model output.
 
-This ADR remains proposed until product and architecture owners approve it.
+Acceptance fixes the initial milestone as payment-kernel only. AI provider and hosted-gateway
+decisions remain outside MVP scope.

@@ -1,6 +1,6 @@
 # ADR 0001: Self-custodial Base MVP
 
-- Status: Proposed
+- Status: Accepted for MVP
 - Date: 2026-08-25
 - Decision owners: product, payments architecture, security, legal
 - Related: [D2](../DECISIONS_REQUIRED.md#d2-custody-and-signing)
@@ -18,7 +18,7 @@ EIP-3009 authorization must be signed by the address named as `from`, and that a
 the USDC. A router that receives swap output cannot then submit an authorization from an
 unfunded payer. A service signer changes the product into treasury-funded custody.
 
-## Proposed decision
+## Decision
 
 The MVP is self-custodial and Base-only:
 
@@ -40,6 +40,14 @@ SDK orchestration, not one atomic or prompt-free transaction.
 - A custom router, reserve pool, Lightning, cross-chain inventory, and service signer are
   excluded from MVP.
 - Future account abstraction can reduce prompts without silently changing custody.
+- Any production description of custody and fee behavior still requires legal review.
+
+## Rollback triggers
+
+Reopen this ADR if a supported wallet cannot sign the required authorization, a qualified route
+cannot deliver USDC directly to the payer, or production legal analysis determines this flow is
+not viable. A rollback may remove a route or pause launch; it must not silently introduce an
+AnyX signer, wallet, float, bridge, or treasury.
 
 ## Acceptance evidence
 
@@ -50,4 +58,5 @@ SDK orchestration, not one atomic or prompt-free transaction.
 - Crash/retry test proving no duplicate swap/payment.
 - Legal confirmation that implemented flow matches disclosed custody model.
 
-This ADR remains proposed until all owners approve it.
+Acceptance authorizes the deterministic kernel and testnet implementation. Mainnet value
+movement remains gated by the evidence above and named security/legal approvals.

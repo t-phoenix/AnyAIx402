@@ -1,6 +1,7 @@
 # AnyAIx402 build plan
 
-Status: proposed architecture plan. Decision gates intentionally precede implementation.
+Status: accepted MVP architecture; implementation is in progress. External production gates
+remain mandatory.
 
 ## 1. Product finding and recommended boundary
 
@@ -9,11 +10,11 @@ gateway. Its vision is to convert payer assets into x402-compatible USDC while l
 merchants unchanged
 ([PRD lines 13–65](source/x402-universal-adapter-prd.md#L13-L65);
 [whitepaper lines 259–275](source/x402-universal-adapter-whitepaper.md#L259-L275)).
-The repository name, AnyAIx402, creates an unresolved identity question. AI documents describe
+The repository name, AnyAIx402, previously created an identity question. AI documents describe
 framework adapters that consume the payment SDK, not model inference or routing
 ([AI integrations lines 12–18](source/anyx-ai-integrations.md#L12-L18)).
 
-Until [Decision D1](DECISIONS_REQUIRED.md#d1-product-identity) is approved, the build target is:
+Under resolved [Decision D1](DECISIONS_REQUIRED.md#d1-product-identity), the build target is:
 
 > A Base-first, self-custodial x402 payment adapter. It quotes a payer-authorized swap to USDC
 > delivered to the payer, obtains the payer's EIP-3009 signature, and replays the original HTTP
@@ -33,7 +34,8 @@ dependency, not mixed into model-routing code; see
 - CAIP-2 network IDs and CAIP-19 asset IDs at every external boundary; numeric chain IDs may be
   adapter-local conveniences only.
 - Base Sepolia first, then capped Base mainnet canaries.
-- Qualified Base routes for USDT, WETH, cbBTC, and native ETH if provider execution is safe.
+- Canonical Base USDC settlement with qualified native ETH/WETH and USDT acquisition routes.
+  cbBTC follows only after route qualification.
 - Swap output sent to the payer's address; payer signs EIP-3009 from an address holding USDC.
 - Exact request replay, including method, query, safe headers, and replayable body.
 - DEX-provider abstraction, initially one provider plus deterministic mocks.
@@ -181,7 +183,7 @@ ledger transitions.
 
 ### Phase 0 — decisions and protocol proof
 
-- Approve D1–D8 in `DECISIONS_REQUIRED.md`.
+- Keep resolved D1–D8 and accepted ADRs consistent with executable behavior.
 - Pin current x402 client/server packages and facilitator compatibility.
 - Capture canonical wire fixtures for all three payment headers.
 - Demonstrate a payer-funded USDC payment and a swap-output-to-payer payment.

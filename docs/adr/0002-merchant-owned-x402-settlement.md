@@ -1,6 +1,6 @@
 # ADR 0002: Merchant-owned x402 verification and settlement
 
-- Status: Proposed
+- Status: Accepted for MVP
 - Date: 2026-08-25
 - Decision owners: protocol specialist, lead architect, payments security
 - Related: [D3](../DECISIONS_REQUIRED.md#d3-x402-version-and-settlement-ownership)
@@ -15,9 +15,10 @@ ownership.
 
 The current protocol must be pinned rather than reconstructed from August 2025 prose.
 
-## Proposed decision
+## Decision
 
-- Pin exact current x402 v2 client/server package versions and source commits.
+- Compatibility baseline: `@x402/core` and `@x402/evm` 2.23.0; x402 source
+  `dd927a26cfefc98c24b3ec38b3a8f204dad0c60d` (observed 2026-08-25).
 - Use the standard `PAYMENT-REQUIRED`, `PAYMENT-SIGNATURE`, and `PAYMENT-RESPONSE` wire schemas.
 - Use CAIP-2 network and CAIP-19 asset identifiers.
 - The AnyX payer client parses the challenge, constructs/signs the payment payload, and retries
@@ -33,6 +34,15 @@ The current protocol must be pinned rather than reconstructed from August 2025 p
 - The protocol adapter is versioned and isolated from routing/wallet code.
 - Merchant/facilitator finality and response semantics become explicit state-machine events.
 - Non-standard server-side multi-token `accepts` entries are excluded from MVP.
+- Unknown fields are retained at the protocol edge for fingerprinting/forward compatibility, but
+  unknown versions, schemes, networks, and assets are never selected.
+
+## Rollback triggers
+
+Reopen this ADR if the v2 specification or pinned packages change header/schema semantics, a
+reference merchant does not own verify/settle as documented, or conformance reveals an
+incompatible facilitator. Roll back by pinning the last conformant adapter or disabling payment;
+the client must never compensate by pre-settling.
 
 ## Acceptance evidence
 
@@ -42,4 +52,5 @@ The current protocol must be pinned rather than reconstructed from August 2025 p
 - Invalid version, CAIP ID, recipient, amount, expiry, signature, and response tests.
 - Compatibility manifest naming packages, commits, merchant, facilitator, network, and asset.
 
-This ADR remains proposed until the conformance proof and owner approvals are complete.
+Acceptance authorizes parsing and selection against verified v2 fixtures. Live facilitator and
+merchant integration remains blocked on the conformance evidence above.
