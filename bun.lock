@@ -30,6 +30,10 @@
         "anyx-config": "./src/cli.ts",
       },
     },
+    "packages/contracts": {
+      "name": "@anyx/contracts",
+      "version": "0.1.0",
+    },
     "packages/core": {
       "name": "@anyx/core",
       "version": "0.1.0",
@@ -60,6 +64,8 @@
     "@anyx/api": ["@anyx/api@workspace:apps/api"],
 
     "@anyx/config": ["@anyx/config@workspace:packages/config"],
+
+    "@anyx/contracts": ["@anyx/contracts@workspace:packages/contracts"],
 
     "@anyx/core": ["@anyx/core@workspace:packages/core"],
 

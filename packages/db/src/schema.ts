@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm'
+import { relations } from 'drizzle-orm';
 import {
   bigint,
   boolean,
@@ -13,17 +13,17 @@ import {
   uniqueIndex,
   uuid,
   varchar,
-} from 'drizzle-orm/pg-core'
+} from 'drizzle-orm/pg-core';
 
-export const quoteStatus = pgEnum('quote_status', ['pending', 'used', 'expired'])
-export const paymentStatus = pgEnum('payment_status', ['pending', 'settled', 'failed'])
-export const apiKeyPlan = pgEnum('api_key_plan', ['free', 'pro', 'enterprise'])
+export const quoteStatus = pgEnum('quote_status', ['pending', 'used', 'expired']);
+export const paymentStatus = pgEnum('payment_status', ['pending', 'settled', 'failed']);
+export const apiKeyPlan = pgEnum('api_key_plan', ['free', 'pro', 'enterprise']);
 export const lightningInvoiceStatus = pgEnum('lightning_invoice_status', [
   'pending',
   'paid',
   'expired',
-])
-export const partnerCreditStatus = pgEnum('partner_credit_status', ['accrued', 'settled', 'void'])
+]);
+export const partnerCreditStatus = pgEnum('partner_credit_status', ['accrued', 'settled', 'void']);
 
 /**
  * Amounts are stored as decimal strings in atomic (base) units so that no
@@ -51,7 +51,7 @@ export const quotes = pgTable(
     index('quotes_expires_at_idx').on(table.expiresAt),
     index('quotes_endpoint_url_idx').on(table.endpointUrl),
   ],
-)
+);
 
 export const payments = pgTable(
   'payments',
@@ -79,7 +79,7 @@ export const payments = pgTable(
     index('payments_tx_hash_idx').on(table.txHash),
     index('payments_from_address_idx').on(table.fromAddress),
   ],
-)
+);
 
 export const apiKeys = pgTable(
   'api_keys',
@@ -102,7 +102,7 @@ export const apiKeys = pgTable(
     uniqueIndex('api_keys_key_hash_idx').on(table.keyHash),
     index('api_keys_owner_email_idx').on(table.ownerEmail),
   ],
-)
+);
 
 export const lightningInvoices = pgTable(
   'lightning_invoices',
@@ -121,7 +121,7 @@ export const lightningInvoices = pgTable(
     uniqueIndex('lightning_invoices_payment_hash_idx').on(table.paymentHash),
     index('lightning_invoices_status_idx').on(table.status),
   ],
-)
+);
 
 /**
  * Fee sharing for embedded integrations (roadmap Task 6.1): when a request
@@ -148,39 +148,39 @@ export const partnerCredits = pgTable(
     index('partner_credits_status_idx').on(table.status),
     index('partner_credits_payment_id_idx').on(table.paymentId),
   ],
-)
+);
 
 export const quotesRelations = relations(quotes, ({ many }) => ({
   payments: many(payments),
-}))
+}));
 
 export const paymentsRelations = relations(payments, ({ one, many }) => ({
   quote: one(quotes, { fields: [payments.quoteId], references: [quotes.id] }),
   partnerCredits: many(partnerCredits),
-}))
+}));
 
 export const apiKeysRelations = relations(apiKeys, ({ many }) => ({
   partnerCredits: many(partnerCredits),
-}))
+}));
 
 export const partnerCreditsRelations = relations(partnerCredits, ({ one }) => ({
   payment: one(payments, { fields: [partnerCredits.paymentId], references: [payments.id] }),
   apiKey: one(apiKeys, { fields: [partnerCredits.apiKeyId], references: [apiKeys.id] }),
-}))
+}));
 
-export type Quote = typeof quotes.$inferSelect
-export type NewQuote = typeof quotes.$inferInsert
-export type Payment = typeof payments.$inferSelect
-export type NewPayment = typeof payments.$inferInsert
-export type ApiKey = typeof apiKeys.$inferSelect
-export type NewApiKey = typeof apiKeys.$inferInsert
-export type LightningInvoice = typeof lightningInvoices.$inferSelect
-export type NewLightningInvoice = typeof lightningInvoices.$inferInsert
-export type PartnerCredit = typeof partnerCredits.$inferSelect
-export type NewPartnerCredit = typeof partnerCredits.$inferInsert
+export type Quote = typeof quotes.$inferSelect;
+export type NewQuote = typeof quotes.$inferInsert;
+export type Payment = typeof payments.$inferSelect;
+export type NewPayment = typeof payments.$inferInsert;
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type NewApiKey = typeof apiKeys.$inferInsert;
+export type LightningInvoice = typeof lightningInvoices.$inferSelect;
+export type NewLightningInvoice = typeof lightningInvoices.$inferInsert;
+export type PartnerCredit = typeof partnerCredits.$inferSelect;
+export type NewPartnerCredit = typeof partnerCredits.$inferInsert;
 
-export type QuoteStatus = (typeof quoteStatus.enumValues)[number]
-export type PaymentStatus = (typeof paymentStatus.enumValues)[number]
-export type ApiKeyPlan = (typeof apiKeyPlan.enumValues)[number]
-export type LightningInvoiceStatus = (typeof lightningInvoiceStatus.enumValues)[number]
-export type PartnerCreditStatus = (typeof partnerCreditStatus.enumValues)[number]
+export type QuoteStatus = (typeof quoteStatus.enumValues)[number];
+export type PaymentStatus = (typeof paymentStatus.enumValues)[number];
+export type ApiKeyPlan = (typeof apiKeyPlan.enumValues)[number];
+export type LightningInvoiceStatus = (typeof lightningInvoiceStatus.enumValues)[number];
+export type PartnerCreditStatus = (typeof partnerCreditStatus.enumValues)[number];

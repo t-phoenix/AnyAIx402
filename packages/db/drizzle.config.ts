@@ -1,6 +1,6 @@
-import { defineConfig } from 'drizzle-kit'
+import { defineConfig } from 'drizzle-kit';
 
-const DEFAULT_LOCAL_URL = 'postgresql://anyx:anyx@localhost:5432/anyx'
+const DEFAULT_LOCAL_URL = 'postgresql://anyx:anyx@localhost:5432/anyx';
 
 export default defineConfig({
   schema: './src/schema.ts',
@@ -11,4 +11,4 @@ export default defineConfig({
   },
   verbose: true,
   strict: true,
-})
+});
