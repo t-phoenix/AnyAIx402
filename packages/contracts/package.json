@@ -1,0 +1,20 @@
+{
+  "name": "@anyx/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AnyX Solidity contracts: AnyXRouter, SwapExecutor, FeeCollector, ReservePool",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "build": "bash ./with-forge.sh build",
+    "test": "bash ./with-forge.sh test",
+    "lint": "bash ./with-forge.sh fmt --check",
+    "typecheck": "bash ./with-forge.sh build",
+    "test:coverage": "bash ./with-forge.sh coverage",
+    "fmt": "bash ./with-forge.sh fmt",
+    "sizes": "bash ./with-forge.sh build --sizes",
+    "deps": "forge install OpenZeppelin/openzeppelin-contracts@v5.1.0 --no-git && forge install foundry-rs/forge-std --no-git",
+    "deploy:sepolia": "forge script script/Deploy.s.sol:Deploy --rpc-url base_sepolia --broadcast --verify",
+    "clean": "rm -rf out cache .turbo"
+  }
+}

@@ -1,13 +1,13 @@
-import type { Token } from './types.js'
+import type { Token } from './types.js';
 
-export const CHAIN_ID_BASE = 8453
-export const CHAIN_ID_ETHEREUM = 1
-export const CHAIN_ID_SOLANA = 101
+export const CHAIN_ID_BASE = 8453;
+export const CHAIN_ID_ETHEREUM = 1;
+export const CHAIN_ID_SOLANA = 101;
 /** Bitcoin / Lightning has no EVM chain id; 0 is reserved for it in AnyX. */
-export const CHAIN_ID_BITCOIN_LIGHTNING = 0
+export const CHAIN_ID_BITCOIN_LIGHTNING = 0;
 
-export const USDC_BASE_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
-export const USDC_SOLANA_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
+export const USDC_BASE_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+export const USDC_SOLANA_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 
 export const TOKEN_REGISTRY: readonly Token[] = [
   {
@@ -120,62 +120,62 @@ export const TOKEN_REGISTRY: readonly Token[] = [
     isNative: true,
     swapPath: 'bridge',
   },
-] as const
+] as const;
 
 const registryKey = (symbol: string, chainId: number): string =>
-  `${symbol.toUpperCase()}:${chainId}`
+  `${symbol.toUpperCase()}:${chainId}`;
 
 const BY_SYMBOL_AND_CHAIN = new Map<string, Token>(
   TOKEN_REGISTRY.map((token) => [registryKey(token.symbol, token.chainId), token]),
-)
+);
 
 const BY_ADDRESS_AND_CHAIN = new Map<string, Token>(
   TOKEN_REGISTRY.filter((token) => token.address !== null).map((token) => [
     registryKey(token.address as string, token.chainId),
     token,
   ]),
-)
+);
 
 export function getToken(symbol: string, chainId: number): Token | undefined {
-  return BY_SYMBOL_AND_CHAIN.get(registryKey(symbol, chainId))
+  return BY_SYMBOL_AND_CHAIN.get(registryKey(symbol, chainId));
 }
 
 export function getSupportedTokens(): readonly Token[] {
-  return TOKEN_REGISTRY
+  return TOKEN_REGISTRY;
 }
 
 export function isSupported(address: string | null, chainId: number): boolean {
   if (address === null) {
-    return TOKEN_REGISTRY.some((token) => token.address === null && token.chainId === chainId)
+    return TOKEN_REGISTRY.some((token) => token.address === null && token.chainId === chainId);
   }
-  return BY_ADDRESS_AND_CHAIN.has(registryKey(address, chainId))
+  return BY_ADDRESS_AND_CHAIN.has(registryKey(address, chainId));
 }
 
 export function getTokenByAddress(address: string, chainId: number): Token | undefined {
-  return BY_ADDRESS_AND_CHAIN.get(registryKey(address, chainId))
+  return BY_ADDRESS_AND_CHAIN.get(registryKey(address, chainId));
 }
 
 export function getTokensForChain(chainId: number): readonly Token[] {
-  return TOKEN_REGISTRY.filter((token) => token.chainId === chainId)
+  return TOKEN_REGISTRY.filter((token) => token.chainId === chainId);
 }
 
 /** The settlement asset for every x402 payment AnyX routes. */
 export function getSettlementToken(): Token {
-  const usdc = getToken('USDC', CHAIN_ID_BASE)
-  if (!usdc) throw new Error('Token registry is missing USDC on Base')
-  return usdc
+  const usdc = getToken('USDC', CHAIN_ID_BASE);
+  if (!usdc) throw new Error('Token registry is missing USDC on Base');
+  return usdc;
 }
 
 /**
  * DEX aggregators address native assets with the EIP-7528 sentinel rather than a
  * contract address.
  */
-export const NATIVE_ASSET_SENTINEL = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
+export const NATIVE_ASSET_SENTINEL = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 
 export function toDexAssetAddress(token: Token): string {
-  return token.address ?? NATIVE_ASSET_SENTINEL
+  return token.address ?? NATIVE_ASSET_SENTINEL;
 }
 
 export function oneWholeUnit(token: Token): string {
-  return (10n ** BigInt(token.decimals)).toString()
+  return (10n ** BigInt(token.decimals)).toString();
 }

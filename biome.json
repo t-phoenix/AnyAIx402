@@ -18,7 +18,10 @@
       "!**/broadcast",
       "!**/bun.lock",
       "!**/*.min.js",
-      "!packages/db/drizzle"
+      "!packages/db/drizzle",
+      "!packages/contracts/lib",
+      "!.orchestrator",
+      "!.anyx"
     ]
   },
   "formatter": {

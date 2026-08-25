@@ -15,13 +15,21 @@ export const DEFAULT_COVERAGE_THRESHOLD = 80;
  * Defaults track the roadmap's script names. They are overridable because the
  * monorepo packages are authored by other agents and may rename scripts.
  */
+/**
+ * `test:unit` rather than a bare `bun test`: the root of the repository also
+ * contains the Hardhat suites vendored into `packages/contracts/lib`, which are
+ * not ours to run.
+ */
 export const DEFAULT_TEST_COMMANDS: TestStageCommands = {
   lint: 'bun run lint',
   typecheck: 'bun run typecheck',
-  unit: 'bun test',
+  unit: 'bun run test:unit',
   integration: 'bun run test:integration',
-  contracts: 'forge test -vvv',
-  coverage: 'bun test --coverage',
+  // Rooted at the Foundry project. Run from the repository root, `forge test`
+  // finds no project, compiles nothing, and exits 0 — a green stage that
+  // verified nothing at all.
+  contracts: 'forge test -vvv --root packages/contracts',
+  coverage: 'bun run test:unit --coverage',
 };
 
 export const DEFAULT_BUILD_COMMANDS: BuildCommands = {

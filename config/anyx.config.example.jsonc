@@ -265,10 +265,10 @@
     "test": {
       "lint": "bun run lint",
       "typecheck": "bun run typecheck",
-      "unit": "bun test",
+      "unit": "bun run test:unit",
       "integration": "bun run test:integration",
-      "contracts": "forge test -vvv",
-      "coverage": "bun test --coverage"
+      "contracts": "forge test -vvv --root packages/contracts",
+      "coverage": "bun run test:unit --coverage"
     },
 
     "coverageThreshold": 80,
