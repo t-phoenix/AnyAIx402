@@ -1,0 +1,90 @@
+openapi: 3.1.0
+info:
+  title: AnyX API
+  version: 0.1.0
+  description: Universal x402 multi-token payment adapter. Quote and pay x402 APIs with ETH, USDT, or other registered tokens.
+  license:
+    name: Apache-2.0
+servers:
+  - url: https://api.anyx.xyz
+    description: production
+  - url: http://localhost:3000
+    description: development
+security:
+  - ApiKeyAuth: []
+paths:
+  /health:
+    get:
+      summary: Liveness
+      responses:
+        "200":
+          description: OK
+  /v1/tokens:
+    get:
+      summary: Supported input tokens
+      responses:
+        "200":
+          description: Token list
+  /v1/quote:
+    post:
+      summary: Get a swap quote for an x402 endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [endpointUrl, inputToken, inputChainId]
+              properties:
+                endpointUrl: { type: string }
+                inputToken: { type: string, example: ETH }
+                inputChainId: { type: integer, example: 8453 }
+                slippageBps: { type: integer, example: 50 }
+      responses:
+        "200":
+          description: Quote
+  /v1/pay:
+    post:
+      summary: Settle a quote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quoteId, walletAddress]
+              properties:
+                quoteId: { type: string }
+                walletAddress: { type: string }
+      responses:
+        "200":
+          description: PaymentReceipt
+  /v1/receipt/{id}:
+    get:
+      summary: Fetch a receipt
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: PaymentReceipt
+  /v1/lightning/invoice:
+    post:
+      summary: Lightning invoice (Phase 3 stub)
+      responses:
+        "200":
+          description: Stub
+  /v1/config/status:
+    get:
+      summary: Presence-only config status (no secrets)
+      responses:
+        "200":
+          description: Groups and capabilities
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key

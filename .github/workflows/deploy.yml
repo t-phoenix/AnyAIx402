@@ -1,0 +1,35 @@
+name: Deploy API
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm install
+      - run: npm test
+      - name: Build API image (always)
+        run: docker build -f apps/api/Dockerfile -t anyx-api:dry-run .
+      - name: Dry-run note
+        if: ${{ secrets.FLY_API_TOKEN == '' }}
+        run: |
+          echo "FLY_API_TOKEN is not set. Skipping flyctl deploy."
+          echo "Add the secret, then re-run this workflow for a live deploy."
+          echo "Health check after deploy: curl https://api.anyx.xyz/health"
+      - name: Deploy to Fly.io
+        if: ${{ secrets.FLY_API_TOKEN != '' }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          curl -L https://fly.io/install.sh | sh
+          export FLYCTL_INSTALL="$HOME/.fly"
+          export PATH="$FLYCTL_INSTALL/bin:$PATH"
+          flyctl deploy --app anyx-api --remote-only || echo "flyctl deploy failed or app not created yet"

@@ -1,0 +1,25 @@
+{
+  "app": {
+    "port": 3000,
+    "stubPayments": true,
+    "publicUrl": "http://localhost:3000"
+  },
+  "chain": {
+    "baseRpc": "https://mainnet.base.org"
+  },
+  "wallet": {
+    "privateKey": ""
+  },
+  "dex": {
+    "oneInchApiKey": "",
+    "zeroXApiKey": ""
+  },
+  "x402": {
+    "facilitatorUrl": "https://api.cdp.coinbase.com/platform/v2/x402",
+    "facilitatorFallbackUrl": "https://x402.halowerk.com/facilitator"
+  },
+  "fees": {
+    "feeBps": 20,
+    "minFeeUsdc": 0.001
+  }
+}

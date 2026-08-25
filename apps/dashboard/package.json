@@ -1,0 +1,6 @@
+{
+  "name": "@anyx/dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "v0 static developer portal. Next.js 14 analytics app is Phase 5 (docs/PLAN.md)."
+}

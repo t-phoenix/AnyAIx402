@@ -1,0 +1,64 @@
+# AnyX user settings (no engineering required)
+#
+# Copy this file to config/user.config.yaml and fill in the values you have.
+# You can also put the same values in .env.local — environment variables win
+# if both are set.
+#
+# Leave a line blank to skip that feature. The API still starts.
+# Check what is missing:  npm run check-config
+# Or open:                http://localhost:3000/setup
+
+app:
+  port: 3000
+  # true = fake payment receipts (safe). false = real USDC payments (needs wallet).
+  stubPayments: true
+  publicUrl: http://localhost:3000
+
+data:
+  # Optional. Uncomment after `docker compose up -d`.
+  # databaseUrl: postgresql://anyx:anyx@localhost:5432/anyx
+  # redisUrl: redis://localhost:6379
+
+chain:
+  baseRpc: https://mainnet.base.org
+  # ethereumRpc: https://eth.llamarpc.com
+  # solanaRpc: https://api.mainnet-beta.solana.com
+
+wallet:
+  # PASTE a 0x... private key for a dedicated test wallet that holds USDC on Base.
+  # Never use the wallet you keep savings in. Never commit this file after filling it.
+  privateKey:
+
+dex:
+  # Get a free key: https://portal.1inch.dev/
+  oneInchApiKey:
+  # Get a key: https://dashboard.0x.org/
+  zeroXApiKey:
+
+x402:
+  facilitatorUrl: https://api.cdp.coinbase.com/platform/v2/x402
+  facilitatorFallbackUrl: https://x402.halowerk.com/facilitator
+
+circle:
+  cctpAttesterUrl: https://iris-api.circle.com
+
+fees:
+  # 20 = 0.20% default spread (ETH). USDT uses a lower 0.05% in code.
+  feeBps: 20
+  minFeeUsdc: 0.001
+
+mas:
+  # Optional. Only needed if you want the orchestrator to call an LLM.
+  openaiApiKey:
+  anthropicApiKey:
+
+billing:
+  # Phase 6. Not needed to earn swap spread.
+  stripeSecretKey:
+
+lightning:
+  # Phase 3.
+  macaroonPath:
+
+webhooks:
+  paymentUrl:

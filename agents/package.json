@@ -1,0 +1,12 @@
+{
+  "name": "@anyx/agents",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "anyx-agents": "./orchestrator/cli.ts"
+  },
+  "dependencies": {
+    "@anyx/config": "0.1.0",
+    "@anyx/core": "0.1.0"
+  }
+}

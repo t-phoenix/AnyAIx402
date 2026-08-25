@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false,
+    "baseUrl": ".",
+    "paths": {
+      "@anyx/config": ["packages/config/src/index.ts"],
+      "@anyx/core": ["packages/core/src/index.ts"],
+      "@anyx/sdk": ["packages/sdk/src/index.ts"],
+      "@anyx/db": ["packages/db/src/index.ts"]
+    },
+    "types": ["node"]
+  },
+  "include": [
+    "packages/**/*.ts",
+    "apps/**/*.ts",
+    "agents/**/*.ts",
+    "scripts/**/*.ts",
+    "vitest.config.ts"
+  ],
+  "exclude": ["node_modules", "dist", "apps/dashboard"]
+}
