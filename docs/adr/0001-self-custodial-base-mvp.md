@@ -8,7 +8,7 @@
 ## Context
 
 The PRD makes non-custody a v1 non-goal boundary
-([PRD lines 61–66](../source/x402-universal-adapter-prd.md#L61-L66), while other source flows use
+([PRD lines 61–66](../source/x402-universal-adapter-prd.md#L61-L66)), while other source flows use
 a pre-funded USDC float and AnyX hot signer
 ([AGENTS lines 1232–1241](../source/AGENTS.md#L1232-L1241)). The proposed `/v1/pay` accepts only a
 wallet address, which is not authorization to transfer assets
