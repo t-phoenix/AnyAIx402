@@ -33,7 +33,9 @@ export function fingerprint(domain: string, value: unknown): string {
   if (!/^[a-z][a-z0-9.-]+\/v[1-9][0-9]*$/.test(domain)) {
     throw new TypeError(`Invalid fingerprint domain: ${domain}`);
   }
-  return createHash("sha256").update(`${domain}\n${canonicalize(value)}`, "utf8").digest("hex");
+  return createHash("sha256")
+    .update(`${domain}\n${canonicalize(value)}`, "utf8")
+    .digest("hex");
 }
 
 export function challengeFingerprint(challenge: unknown): string {

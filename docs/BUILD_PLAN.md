@@ -31,7 +31,8 @@ dependency, not mixed into model-routing code; see
 - TypeScript SDK exposing `fetch`, `quote`, `pay`, token discovery, policy hooks, and receipts.
 - Current x402 v2 wire behavior pinned by package version and conformance fixtures:
   `PAYMENT-REQUIRED`, `PAYMENT-SIGNATURE`, and `PAYMENT-RESPONSE`.
-- CAIP-2 network IDs and CAIP-19 asset IDs at every external boundary; numeric chain IDs may be
+- CAIP-2 network IDs and CAIP-19 asset IDs at AnyX boundaries; the x402 v2 EVM wire asset remains
+  its specified contract address and is normalized immediately. Numeric chain IDs may be
   adapter-local conveniences only.
 - Base Sepolia first, then capped Base mainnet canaries.
 - Canonical Base USDC settlement with qualified native ETH/WETH and USDT acquisition routes.

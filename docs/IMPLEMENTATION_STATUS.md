@@ -8,11 +8,15 @@ Updated: 2026-08-25
   defaults are resolved in the decision register and accepted ADRs.
 - Official x402 v2 schema and HTTP transport assumptions are pinned for the initial kernel.
 - Public/protocol packages are designated Apache-2.0; no repository-wide license is asserted.
+- Bun/strict TypeScript workspace with `@anyx/sdk` and `@anyx/config`.
+- Tested v2 challenge parsing/selection, CAIP allowlists, integer fee math, deterministic
+  fingerprints/idempotency, guarded recovery state machine, and secret-safe configuration.
 
 ## Current protocol assumptions
 
-- Baseline packages: `@x402/core` 2.23.0 and `@x402/evm` 2.23.0 (npm registry,
-  observed 2026-08-25).
+- Baseline packages: [`@x402/core` 2.23.0](https://www.npmjs.com/package/@x402/core/v/2.23.0)
+  and [`@x402/evm` 2.23.0](https://www.npmjs.com/package/@x402/evm/v/2.23.0)
+  (npm registry, observed 2026-08-25).
 - Baseline source: x402 `main` commit
   `dd927a26cfefc98c24b3ec38b3a8f204dad0c60d` (observed 2026-08-25).
 - x402 version is numeric `2`. `PAYMENT-REQUIRED` is base64-encoded JSON containing
@@ -34,10 +38,10 @@ Primary sources:
 - [x402 HTTP 402 documentation](https://docs.x402.org/core-concepts/http-402)
 - [Circle USDC addresses](https://developers.circle.com/stablecoins/usdc-contract-addresses)
 - [Base contract addresses](https://docs.base.org/base-chain/network-information/base-contracts)
+- [BaseScan bridged USDT contract](https://basescan.org/token/0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2)
 
 ## Next
 
-- Deterministic protocol/config workspace, tests, and package usage documentation.
 - Reference merchant/facilitator conformance fixture and Base Sepolia vertical flow.
 - DEX route qualification and wallet adapter selection after the kernel boundary is stable.
 

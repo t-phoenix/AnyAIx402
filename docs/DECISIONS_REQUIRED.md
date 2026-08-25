@@ -97,9 +97,10 @@ reconciliation.
 **Conflict.** “Any ERC-20” is not safe: fee-on-transfer, rebasing, malicious and illiquid tokens
 violate assumptions. Token and phase lists conflict across source files.
 
-**Decision.** Canonical Base USDC is settlement. Native ETH/WETH and USDT are first acquisition
-inputs. Add cbBTC only after allowance, recipient, liquidity, price-impact, gas, and failure
-tests. Registry is CAIP/address based, never symbol based.
+**Decision.** Canonical Base USDC is settlement. Native ETH/WETH and the allowlisted bridged Base
+USDT contract are first acquisition inputs; the latter is not Tether-issued and remains
+route-qualification gated. Add cbBTC only after allowance, recipient, liquidity, price-impact,
+gas, and failure tests. Registry is CAIP/address based, never symbol based.
 
 ### D6 HTTP replay and data handling
 

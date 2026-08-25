@@ -1,11 +1,5 @@
 import { parseAtomicAmount } from "./amount.js";
-import {
-  type Caip19Id,
-  type Caip2Id,
-  erc20Caip19,
-  parseCaip2,
-  parseEvmAddress,
-} from "./caip.js";
+import { type Caip19Id, type Caip2Id, erc20Caip19, parseCaip2, parseEvmAddress } from "./caip.js";
 import { challengeFingerprint } from "./fingerprint.js";
 
 export interface ResourceInfo extends Record<string, unknown> {
@@ -68,11 +62,7 @@ function assertRecord(value: unknown, field: string): asserts value is Record<st
   }
 }
 
-function requiredString(
-  record: Record<string, unknown>,
-  field: string,
-  label = field,
-): string {
+function requiredString(record: Record<string, unknown>, field: string, label = field): string {
   const value = record[field];
   if (typeof value !== "string" || value.length === 0) {
     throw new ChallengeValidationError(`${label} must be a non-empty string`);

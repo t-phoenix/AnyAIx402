@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { BASE_ASSETS, BASE_MAINNET } from "@anyx/sdk";
-import example from "../config.example.json";
+import example from "../config.example.json" with { type: "json" };
 import { ConfigSecurityError, parseAnyxConfig } from "./index.js";
 
 function config(overrides: Record<string, unknown> = {}) {

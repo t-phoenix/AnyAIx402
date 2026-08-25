@@ -23,6 +23,7 @@ import {
 } from "./index.js";
 
 const payTo = "0x209693Bc6afc0C5328bA36FaF03C514EF312287C";
+const normalizedPayTo = "0x209693bc6afc0c5328ba36faf03c514ef312287c";
 
 function fixture(overrides: Record<string, unknown> = {}) {
   return {
@@ -69,22 +70,10 @@ describe("x402 v2 challenge parsing and selection", () => {
     ["missing resource", fixture({ resource: undefined })],
     ["bad URL", fixture({ resource: { url: "file:///secret" } })],
     ["empty accepts", fixture({ accepts: [] })],
-    [
-      "fractional amount",
-      fixture({ accepts: [{ ...fixture().accepts[0], amount: "1.2" }] }),
-    ],
-    [
-      "leading-zero amount",
-      fixture({ accepts: [{ ...fixture().accepts[0], amount: "01" }] }),
-    ],
-    [
-      "invalid network",
-      fixture({ accepts: [{ ...fixture().accepts[0], network: "base" }] }),
-    ],
-    [
-      "invalid timeout",
-      fixture({ accepts: [{ ...fixture().accepts[0], maxTimeoutSeconds: 0 }] }),
-    ],
+    ["fractional amount", fixture({ accepts: [{ ...fixture().accepts[0], amount: "1.2" }] })],
+    ["leading-zero amount", fixture({ accepts: [{ ...fixture().accepts[0], amount: "01" }] })],
+    ["invalid network", fixture({ accepts: [{ ...fixture().accepts[0], network: "base" }] })],
+    ["invalid timeout", fixture({ accepts: [{ ...fixture().accepts[0], maxTimeoutSeconds: 0 }] })],
   ])("rejects malformed challenge: %s", (_name, value) => {
     expect(() => parsePaymentRequired(value)).toThrow(ChallengeValidationError);
   });
@@ -102,13 +91,13 @@ describe("x402 v2 challenge parsing and selection", () => {
       schemes: ["exact"],
       networks: [BASE_MAINNET],
       settlementAssets: [BASE_ASSETS.usdc],
-      payToAllowlist: [payTo.toLowerCase()],
+      payToAllowlist: [normalizedPayTo],
       maxAmountAtomic: 1000n,
       minTimeoutSeconds: 30,
     });
     expect(selected.asset).toBe(BASE_ASSETS.usdc);
     expect(selected.amountAtomic).toBe(1000n);
-    expect(selected.payTo).toBe(payTo.toLowerCase());
+    expect(selected.payTo).toBe(normalizedPayTo);
   });
 
   test.each([
@@ -154,13 +143,9 @@ describe("integer amount and fee arithmetic", () => {
         const result = calculateFeeOnTop(cost, { feeBps, maxFeeBps: 1000 });
         expect(result.grossAtomic).toBeGreaterThanOrEqual(cost);
         expect(result.feeAtomic).toBe(result.grossAtomic - cost);
-        expect(result.grossAtomic * BigInt(10_000 - feeBps)).toBeGreaterThanOrEqual(
-          cost * 10_000n,
-        );
+        expect(result.grossAtomic * BigInt(10_000 - feeBps)).toBeGreaterThanOrEqual(cost * 10_000n);
         if (result.grossAtomic > 0n) {
-          expect((result.grossAtomic - 1n) * BigInt(10_000 - feeBps)).toBeLessThan(
-            cost * 10_000n,
-          );
+          expect((result.grossAtomic - 1n) * BigInt(10_000 - feeBps)).toBeLessThan(cost * 10_000n);
         }
         expect(result.collection).toBe("disclosure-only");
       }
@@ -181,14 +166,14 @@ describe("fingerprints and operation idempotency", () => {
     const first = challengeFingerprint({ b: 2, a: { y: true, x: "value" } });
     const reordered = challengeFingerprint({ a: { x: "value", y: true }, b: 2 });
     expect(first).toBe(reordered);
-    expect(first).toMatch(/^[0-9a-f]{64}$/);
+    expect(first).toBe("8aba2df283a3caf3cfaf21e7809d72069af38d90d3e34d0a7c79afb906ac505d");
     expect(challengeFingerprint({ a: { x: "changed", y: true }, b: 2 })).not.toBe(first);
   });
 
   test("binds quote fields and operation identity", () => {
     const quote = {
       challengeFingerprint: "a".repeat(64),
-      payer: payTo.toLowerCase(),
+      payer: normalizedPayTo,
       inputAsset: BASE_ASSETS.weth,
       settlementAsset: BASE_ASSETS.usdc,
       apiCostAtomic: "1000",

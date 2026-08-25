@@ -42,9 +42,12 @@ export const anyxConfigSchema = z
         acquisitionAssets: z
           .array(z.enum([BASE_ASSETS.eth, BASE_ASSETS.weth, BASE_ASSETS.usdtBridged]))
           .min(1)
-          .refine((values) => new Set(values.map((value) => value.toLowerCase())).size === values.length, {
-            message: "acquisitionAssets cannot contain duplicates",
-          }),
+          .refine(
+            (values) => new Set(values.map((value) => value.toLowerCase())).size === values.length,
+            {
+              message: "acquisitionAssets cannot contain duplicates",
+            },
+          ),
         feeBps: z.number().int().min(0).max(9999),
         maxFeeBps: z.number().int().min(0).max(9999),
         collectFeeOnchain: z.literal(false),
@@ -80,13 +83,16 @@ export const anyxConfigSchema = z
 
 export type AnyxConfig = z.infer<typeof anyxConfigSchema>;
 
-const SENSITIVE_KEY = /(?:api[_-]?key|private[_-]?key|secret|password|passwd|mnemonic|seed|token)$/i;
+const SENSITIVE_KEY =
+  /(?:api[_-]?key|private[_-]?key|secret|password|passwd|mnemonic|seed|token)$/i;
 const PRIVATE_KEY_VALUE = /^(?:0x)?[0-9a-fA-F]{64}$/;
 const AUTHENTICATED_URL = /^[a-z][a-z0-9+.-]*:\/\/[^/\s]+:[^@\s]+@/i;
 
 function rejectInlineSecrets(value: unknown, path: readonly string[] = []): void {
   if (Array.isArray(value)) {
-    value.forEach((entry, index) => rejectInlineSecrets(entry, [...path, String(index)]));
+    value.forEach((entry, index) => {
+      rejectInlineSecrets(entry, [...path, String(index)]);
+    });
     return;
   }
   if (value === null || typeof value !== "object") {
@@ -132,8 +138,7 @@ export function parseAnyxConfig(input: unknown): AnyxConfig {
     !Array.isArray(candidate.payments)
   ) {
     const payments = candidate.payments as Record<string, unknown>;
-    payments.feeBps ??=
-      environment === "production" ? PRODUCTION_FEE_BPS : LOCAL_TEST_FEE_BPS;
+    payments.feeBps ??= environment === "production" ? PRODUCTION_FEE_BPS : LOCAL_TEST_FEE_BPS;
     payments.maxFeeBps ??= 100;
     payments.collectFeeOnchain ??= false;
   }
