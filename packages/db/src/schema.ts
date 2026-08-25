@@ -2,7 +2,17 @@
  * Drizzle schema for Postgres. v0 uses the in-memory store in @anyx/core
  * until DATABASE_URL is set. Keep this file as the source of truth for columns.
  */
-import { boolean, integer, jsonb, pgEnum, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from "drizzle-orm/pg-core";
 
 export const quoteStatusEnum = pgEnum("quote_status", ["pending", "used", "expired"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["pending", "settled", "failed"]);

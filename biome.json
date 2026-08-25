@@ -6,15 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": [
-      "node_modules",
-      "dist",
-      "coverage",
-      ".anyx",
-      "apps/dashboard",
-      "docs",
-      "*.html"
-    ]
+    "ignore": ["node_modules", "dist", "coverage", ".anyx", "apps/dashboard", "docs", "*.html"]
   },
   "formatter": {
     "enabled": true,

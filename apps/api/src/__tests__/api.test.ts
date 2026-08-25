@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
 import { loadConfig } from "@anyx/config";
 import { resetStore } from "@anyx/core";
+import { describe, expect, it } from "vitest";
 import { createApp } from "../app.ts";
 
 const challenge = {
@@ -59,7 +59,9 @@ describe("AnyX API", () => {
     }) as typeof fetch;
 
     try {
-      const app = createApp(loadConfig({ env: { ANYX_STUB_PAYMENTS: "true" } as NodeJS.ProcessEnv }));
+      const app = createApp(
+        loadConfig({ env: { ANYX_STUB_PAYMENTS: "true" } as NodeJS.ProcessEnv }),
+      );
       const quoteRes = await app.request("/v1/quote", {
         method: "POST",
         headers: { "content-type": "application/json" },

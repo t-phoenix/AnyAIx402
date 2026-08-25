@@ -1,11 +1,11 @@
-import { Hono } from "hono";
-import { cors } from "hono/cors";
-import { logger } from "hono/logger";
 import type { AnyxConfig } from "@anyx/config";
 import { getConfigStatus, publicStatusPayload } from "@anyx/config";
 import { AnyxError } from "@anyx/core";
-import { SETUP_HTML } from "./setup-html.ts";
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { logger } from "hono/logger";
 import { registerRoutes } from "./routes/index.ts";
+import { SETUP_HTML } from "./setup-html.ts";
 
 export type ApiEnv = {
   Variables: {
@@ -58,7 +58,10 @@ export function createApp(config: AnyxConfig) {
   registerRoutes(app);
 
   app.notFound((c) =>
-    c.json({ error: { code: "INVALID_INPUT", message: `No route ${c.req.method} ${c.req.path}` } }, 404),
+    c.json(
+      { error: { code: "INVALID_INPUT", message: `No route ${c.req.method} ${c.req.path}` } },
+      404,
+    ),
   );
 
   app.onError((err, c) => {
@@ -73,10 +76,7 @@ export function createApp(config: AnyxConfig) {
               : 400;
       return c.json(err.toJSON(), status);
     }
-    return c.json(
-      { error: { code: "INVALID_INPUT", message: err.message } },
-      500,
-    );
+    return c.json({ error: { code: "INVALID_INPUT", message: err.message } }, 500);
   });
 
   return app;

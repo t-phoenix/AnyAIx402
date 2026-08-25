@@ -3,10 +3,10 @@ import { resolve } from "node:path";
 import { parse as parseYaml } from "yaml";
 import {
   type AnyxConfig,
-  type Capability,
-  type ConfigField,
   CONFIG_FIELDS,
   CONFIG_GROUPS,
+  type Capability,
+  type ConfigField,
   anyxConfigSchema,
 } from "./schema.ts";
 
@@ -237,9 +237,7 @@ export function formatMissingReport(status: ConfigStatus): string {
   lines.push("========================");
   lines.push("");
   lines.push("What already works:");
-  lines.push(
-    `  • API / health: yes`,
-  );
+  lines.push("  • API / health: yes");
   lines.push(
     `  • Quotes: ${status.capabilities.quote_live ? "live DEX quotes" : "demo (stub) quotes — add a 1inch or 0x key for live rates"}`,
   );
@@ -252,9 +250,7 @@ export function formatMissingReport(status: ConfigStatus): string {
           : "blocked — need PRIVATE_KEY and ANYX_STUB_PAYMENTS=false"
     }`,
   );
-  lines.push(
-    `  • Agent LLM assist: ${status.capabilities.mas_llm ? "enabled" : "off (optional)"}`,
-  );
+  lines.push(`  • Agent LLM assist: ${status.capabilities.mas_llm ? "enabled" : "off (optional)"}`);
   lines.push("");
 
   const byGroup = new Map<string, MissingField[]>();

@@ -15,7 +15,10 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
     return await Promise.race([
       promise,
       new Promise<T>((_, reject) => {
-        timer = setTimeout(() => reject(new AnyxError("SETTLEMENT_FAILED", "Facilitator timeout")), ms);
+        timer = setTimeout(
+          () => reject(new AnyxError("SETTLEMENT_FAILED", "Facilitator timeout")),
+          ms,
+        );
       }),
     ]);
   } finally {

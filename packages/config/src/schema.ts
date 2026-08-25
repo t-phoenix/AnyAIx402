@@ -5,14 +5,17 @@ const emptyToUndefined = (value: unknown) => {
   return value;
 };
 
-const optionalUrl = z.preprocess(
-  emptyToUndefined,
-  z.string().url().optional(),
-);
+const optionalUrl = z.preprocess(emptyToUndefined, z.string().url().optional());
 
 const optionalString = z.preprocess(emptyToUndefined, z.string().min(1).optional());
 
-const optionalHexKey = z.preprocess(emptyToUndefined, z.string().regex(/^0x[0-9a-fA-F]{64}$/).optional());
+const optionalHexKey = z.preprocess(
+  emptyToUndefined,
+  z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{64}$/)
+    .optional(),
+);
 
 export const anyxConfigSchema = z.object({
   port: z.coerce.number().int().positive().default(3000),
@@ -37,10 +40,7 @@ export const anyxConfigSchema = z.object({
   oneInchApiKey: optionalString,
   zeroXApiKey: optionalString,
 
-  facilitatorUrl: z
-    .string()
-    .url()
-    .default("https://api.cdp.coinbase.com/platform/v2/x402"),
+  facilitatorUrl: z.string().url().default("https://api.cdp.coinbase.com/platform/v2/x402"),
   facilitatorFallbackUrl: optionalUrl,
   cdpApiKeyName: optionalString,
   cdpApiKeyPrivateKey: optionalString,
@@ -50,9 +50,7 @@ export const anyxConfigSchema = z.object({
   feeBps: z.coerce.number().int().min(0).max(100).default(20),
   minFeeUsdc: z.coerce.number().min(0).default(0.001),
 
-  usdcBase: z
-    .string()
-    .default("0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"),
+  usdcBase: z.string().default("0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"),
   anyxRouter: optionalString,
   feeCollector: optionalString,
 
@@ -278,10 +276,7 @@ export const CONFIG_FIELDS: ConfigField[] = [
   },
 ];
 
-export const CONFIG_GROUPS: Record<
-  ConfigGroupId,
-  { title: string; blurb: string }
-> = {
+export const CONFIG_GROUPS: Record<ConfigGroupId, { title: string; blurb: string }> = {
   app: {
     title: "App",
     blurb: "How the AnyX API runs on your machine or server.",
@@ -300,7 +295,8 @@ export const CONFIG_GROUPS: Record<
   },
   dex: {
     title: "Swap quotes (DEX)",
-    blurb: "1inch and 0x tell us how much ETH/USDT a payment will cost. Without keys we use demo quotes.",
+    blurb:
+      "1inch and 0x tell us how much ETH/USDT a payment will cost. Without keys we use demo quotes.",
   },
   x402: {
     title: "x402 facilitator",

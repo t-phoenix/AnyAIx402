@@ -1,4 +1,4 @@
-import { UPA } from "@anyx/sdk";
+import type { UPA } from "@anyx/sdk";
 
 /** MCP tool list for Claude Code / Cursor. Runtime MCP SDK wiring is Phase 7. */
 export const MCP_TOOLS = [

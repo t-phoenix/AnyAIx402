@@ -3,7 +3,10 @@ import { getConfigStatus, loadConfig } from "../load.ts";
 
 describe("config loader", () => {
   it("defaults stub payments and Base RPC", () => {
-    const config = loadConfig({ env: {} as NodeJS.ProcessEnv, yamlPath: "/tmp/does-not-exist.yaml" });
+    const config = loadConfig({
+      env: {} as NodeJS.ProcessEnv,
+      yamlPath: "/tmp/does-not-exist.yaml",
+    });
     expect(config.stubPayments).toBe(true);
     expect(config.rpcUrlBase).toContain("base");
     expect(config.feeBps).toBe(20);

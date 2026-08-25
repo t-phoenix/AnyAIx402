@@ -4,12 +4,7 @@
   "private": true,
   "description": "AnyX — pay any x402 API with any token. Settle in USDC on Base.",
   "type": "module",
-  "workspaces": [
-    "packages/*",
-    "packages/integrations/*",
-    "apps/*",
-    "agents"
-  ],
+  "workspaces": ["packages/*", "packages/integrations/*", "apps/*", "agents"],
   "scripts": {
     "build": "tsc -p tsconfig.json --noEmit",
     "typecheck": "tsc -p tsconfig.json --noEmit",

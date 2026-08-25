@@ -1,9 +1,6 @@
 import type { AgentResult, RunContext } from "../orchestrator/types.ts";
 
-export async function runBugReporter(
-  ctx: RunContext,
-  qa: AgentResult,
-): Promise<AgentResult> {
+export async function runBugReporter(_ctx: RunContext, qa: AgentResult): Promise<AgentResult> {
   const bugs = qa.bugs ?? [];
   return {
     agentId: "bug-reporter",

@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
 import { loadConfig } from "@anyx/config";
+import { describe, expect, it } from "vitest";
 import { getBestQuote, quoteForEndpoint, stubDexQuote } from "../quote.ts";
-import { getToken } from "../tokens.ts";
 import { resetStore } from "../store.ts";
+import { getToken } from "../tokens.ts";
 
 const usdt = getToken("USDT", 8453)!;
 
@@ -24,10 +24,7 @@ const challenge = {
 describe("quote engine", () => {
   it("falls back to stub when no DEX keys", async () => {
     const config = loadConfig({ env: {} as NodeJS.ProcessEnv });
-    const best = await getBestQuote(
-      { inputToken: usdt, usdcRequired: "1", chainId: 8453 },
-      config,
-    );
+    const best = await getBestQuote({ inputToken: usdt, usdcRequired: "1", chainId: 8453 }, config);
     expect(best.dex.source).toBe("stub");
     expect(best.feeBps).toBe(5);
   });

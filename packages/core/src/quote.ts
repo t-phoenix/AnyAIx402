@@ -3,11 +3,7 @@ import type { AnyxConfig } from "@anyx/config";
 import { feeBpsForToken, feeUsdc, grossUsdcForFee } from "./fees.ts";
 import { getToken } from "./tokens.ts";
 import { AnyxError, type BestQuote, type DEXQuote, type Token } from "./types.ts";
-import {
-  fetch402Challenge,
-  selectBaseUsdcOption,
-  usdcRequiredFromAmount,
-} from "./x402.ts";
+import { fetch402Challenge, selectBaseUsdcOption, usdcRequiredFromAmount } from "./x402.ts";
 
 export type QuoteParams = {
   inputToken: Token;
@@ -34,7 +30,10 @@ export async function get1inchQuote(
 ): Promise<DEXQuote> {
   if (!apiKey) throw new AnyxError("NO_ROUTE", "1inch API key not configured");
   const url = new URL(`https://api.1inch.dev/swap/v6.0/${params.chainId}/quote`);
-  url.searchParams.set("src", params.inputToken.address ?? "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE");
+  url.searchParams.set(
+    "src",
+    params.inputToken.address ?? "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+  );
   url.searchParams.set("dst", "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913");
   url.searchParams.set("amount", params.usdcRequired);
   url.searchParams.set("includeProtocols", "true");
@@ -160,9 +159,8 @@ export async function quoteForEndpoint(args: {
   );
 
   const usdPrice = STUB_USD_PRICES[token.symbol] ?? 1;
-  const inputAmount = token.symbol === "USDT" || token.symbol === "USDC"
-    ? best.grossUsdc
-    : best.grossUsdc / usdPrice;
+  const inputAmount =
+    token.symbol === "USDT" || token.symbol === "USDC" ? best.grossUsdc : best.grossUsdc / usdPrice;
 
   const expires = new Date((args.now ?? new Date()).getTime() + 30_000);
 

@@ -1,4 +1,4 @@
-import { mustExist, ok, failed } from "../lib.ts";
+import { failed, mustExist, ok } from "../lib.ts";
 import type { AgentResult, RunContext } from "../orchestrator/types.ts";
 
 const REQUIRED = [

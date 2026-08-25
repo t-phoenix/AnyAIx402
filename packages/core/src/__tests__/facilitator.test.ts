@@ -24,7 +24,11 @@ describe("facilitator client", () => {
       expect(init?.method).toBe("POST");
       return new Response(JSON.stringify({ isValid: true, signer: "0xabc" }), { status: 200 });
     };
-    const result = await verifyPayment({ paymentPayload: {}, paymentRequirements: {} }, "https://fac.test", fetchImpl);
+    const result = await verifyPayment(
+      { paymentPayload: {}, paymentRequirements: {} },
+      "https://fac.test",
+      fetchImpl,
+    );
     expect(result.isValid).toBe(true);
   });
 });

@@ -135,7 +135,10 @@ export function isSupported(address: string | null, chainId: number): boolean {
     return TOKEN_REGISTRY.some((t) => t.address === null && t.chainId === chainId);
   }
   return TOKEN_REGISTRY.some(
-    (t) => t.address !== null && t.address.toLowerCase() === address.toLowerCase() && t.chainId === chainId,
+    (t) =>
+      t.address !== null &&
+      t.address.toLowerCase() === address.toLowerCase() &&
+      t.chainId === chainId,
   );
 }
 

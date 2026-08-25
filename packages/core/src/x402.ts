@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { AnyxError, type PaymentRequired } from "./types.ts";
 import { USDC_BASE } from "./tokens.ts";
+import { AnyxError, type PaymentRequired } from "./types.ts";
 
 export const paymentOptionSchema = z.object({
   scheme: z.enum(["exact", "upto"]),
@@ -26,7 +26,11 @@ export const paymentRequiredSchema = z.object({
 export function parsePaymentRequired(body: unknown): PaymentRequired {
   const parsed = paymentRequiredSchema.safeParse(body);
   if (!parsed.success) {
-    throw new AnyxError("INVALID_INPUT", "Not a valid x402 v2 PaymentRequired body", parsed.error.flatten());
+    throw new AnyxError(
+      "INVALID_INPUT",
+      "Not a valid x402 v2 PaymentRequired body",
+      parsed.error.flatten(),
+    );
   }
   return parsed.data;
 }
@@ -34,8 +38,7 @@ export function parsePaymentRequired(body: unknown): PaymentRequired {
 export function selectBaseUsdcOption(challenge: PaymentRequired) {
   const option = challenge.accepts.find(
     (item) =>
-      item.network === "eip155:8453" &&
-      item.asset.toLowerCase() === USDC_BASE.toLowerCase(),
+      item.network === "eip155:8453" && item.asset.toLowerCase() === USDC_BASE.toLowerCase(),
   );
   if (!option) {
     throw new AnyxError(

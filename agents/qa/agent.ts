@@ -11,11 +11,17 @@ export async function runQa(ctx: RunContext): Promise<AgentResult> {
     };
   }
   try {
-    const output = execSync(
-      "npx vitest run packages/core packages/sdk packages/config apps/api",
-      { cwd: ctx.cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
-    );
-    return { agentId: "qa", status: "ok", summary: "vitest passed", artifacts: [output.slice(-500)] };
+    const output = execSync("npx vitest run packages/core packages/sdk packages/config apps/api", {
+      cwd: ctx.cwd,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    return {
+      agentId: "qa",
+      status: "ok",
+      summary: "vitest passed",
+      artifacts: [output.slice(-500)],
+    };
   } catch (err) {
     const logs = err instanceof Error ? err.message : String(err);
     const bug: BugReport = {

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { AnyxError } from "../types.ts";
 import {
   decodePaymentRequiredHeader,
   fetch402Challenge,
   parsePaymentRequired,
   selectBaseUsdcOption,
 } from "../x402.ts";
-import { AnyxError } from "../types.ts";
 
 const valid = {
   x402Version: 2,

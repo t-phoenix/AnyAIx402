@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { getToken, isSupported, TOKEN_REGISTRY, v0Tokens } from "../tokens.ts";
+import { TOKEN_REGISTRY, getToken, isSupported, v0Tokens } from "../tokens.ts";
 
 describe("token registry", () => {
   it("includes Base USDC, USDT, ETH, WETH, cbBTC", () => {
-    const symbols = v0Tokens().map((t) => t.symbol).sort();
+    const symbols = v0Tokens()
+      .map((t) => t.symbol)
+      .sort();
     expect(symbols).toEqual(["ETH", "USDC", "USDT", "WETH", "cbBTC"].sort());
   });
 

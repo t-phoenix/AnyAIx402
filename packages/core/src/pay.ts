@@ -13,7 +13,10 @@ function baseReceipt(
   quote: ReturnType<typeof getQuote>,
   walletAddress: string,
   facilitator: string,
-): Omit<PaymentReceipt, "receiptId" | "txHash" | "blockNumber" | "xPaymentResponse" | "status" | "stub"> {
+): Omit<
+  PaymentReceipt,
+  "receiptId" | "txHash" | "blockNumber" | "xPaymentResponse" | "status" | "stub"
+> {
   return {
     timestamp: new Date().toISOString(),
     endpoint: quote.endpointUrl,
