@@ -28,7 +28,15 @@ export interface RawFinding {
 
 export interface BugEvent {
   readonly at: string;
-  readonly kind: 'opened' | 'seen-again' | 'triaged' | 'fix-dispatched' | 'verified' | 'resolved' | 'escalated' | 'note';
+  readonly kind:
+    | 'opened'
+    | 'seen-again'
+    | 'triaged'
+    | 'fix-dispatched'
+    | 'verified'
+    | 'resolved'
+    | 'escalated'
+    | 'note';
   readonly message: string;
 }
 

@@ -139,10 +139,15 @@ export const MANUAL_GATES: readonly ManualGate[] = [
   {
     id: 'hot-signer',
     title: 'Hot signer key or MPC provider for EIP-3009',
-    why: 'AnyX signs the EIP-3009 authorization on the payer\'s behalf after the swap. The whitepaper rates hot signer compromise as a HIGH severity attack vector, so production must use MPC rather than a raw key.',
+    why: "AnyX signs the EIP-3009 authorization on the payer's behalf after the swap. The whitepaper rates hot signer compromise as a HIGH severity attack vector, so production must use MPC rather than a raw key.",
     blocks: ['1.4-eip3009', '1.6-api-server'],
     configKeys: ['PRIVATE_KEY'],
-    optionalConfigKeys: ['TURNKEY_API_PUBLIC_KEY', 'TURNKEY_API_PRIVATE_KEY', 'TURNKEY_ORGANIZATION_ID', 'LIT_PKP_PUBLIC_KEY'],
+    optionalConfigKeys: [
+      'TURNKEY_API_PUBLIC_KEY',
+      'TURNKEY_API_PRIVATE_KEY',
+      'TURNKEY_ORGANIZATION_ID',
+      'LIT_PKP_PUBLIC_KEY',
+    ],
     signupUrl: 'https://app.turnkey.com/',
     howToObtain: [
       'Development: generate a throwaway key with `openssl rand -hex 32` and prefix it with 0x. Fund it with a few dollars of Base ETH for gas. Never reuse a personal wallet key.',

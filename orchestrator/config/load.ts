@@ -344,11 +344,7 @@ export function loadConfig(options: LoadConfigOptions = {}): OrchestratorConfig 
   });
 }
 
-export function requireEnv(
-  config: OrchestratorConfig,
-  key: string,
-  howToObtain: string,
-): string {
+export function requireEnv(config: OrchestratorConfig, key: string, howToObtain: string): string {
   const value = config.env[key];
   if (value === undefined || value.trim() === '') {
     throw new ConfigError(`Missing required configuration key ${key}.`, howToObtain);

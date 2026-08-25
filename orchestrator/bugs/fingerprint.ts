@@ -55,7 +55,8 @@ export function bugIdFor(fingerprint: string): string {
   return `bug-${fingerprint.slice(0, 8)}`;
 }
 
-const FILE_PATTERN = /(?:^|[\s"'(:])((?:packages|apps|orchestrator|scripts|tests|security|growth|config)\/[\w./-]+\.(?:ts|tsx|js|sol|json|yaml|yml|sh|md))/g;
+const FILE_PATTERN =
+  /(?:^|[\s"'(:])((?:packages|apps|orchestrator|scripts|tests|security|growth|config)\/[\w./-]+\.(?:ts|tsx|js|sol|json|yaml|yml|sh|md))/g;
 
 /** Repo-relative source files named anywhere in the error output. */
 export function extractSuspectedFiles(output: string, extra: readonly string[] = []): string[] {

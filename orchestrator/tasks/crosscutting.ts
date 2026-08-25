@@ -17,14 +17,30 @@ export const CROSSCUTTING_TASKS: readonly TaskDefinition[] = [
     ownedPaths: ['.github/workflows/**'],
     acceptanceCriteria: [
       { kind: 'file-exists', description: 'CI workflow exists', path: '.github/workflows/ci.yml' },
-      { kind: 'file-exists', description: 'Deploy workflow exists', path: '.github/workflows/deploy-api.yml' },
-      { kind: 'file-exists', description: 'SDK publish workflow exists', path: '.github/workflows/publish-sdk.yml' },
-      { kind: 'file-contains', description: 'Bun is set up in CI', path: '.github/workflows/ci.yml', pattern: 'oven-sh/setup-bun' },
-      { kind: 'file-contains', description: 'Fly deploy is gated on the token secret', path: '.github/workflows/deploy-api.yml', pattern: 'FLY_API_TOKEN' },
+      {
+        kind: 'file-exists',
+        description: 'Deploy workflow exists',
+        path: '.github/workflows/deploy-api.yml',
+      },
+      {
+        kind: 'file-exists',
+        description: 'SDK publish workflow exists',
+        path: '.github/workflows/publish-sdk.yml',
+      },
+      {
+        kind: 'file-contains',
+        description: 'Bun is set up in CI',
+        path: '.github/workflows/ci.yml',
+        pattern: 'oven-sh/setup-bun',
+      },
+      {
+        kind: 'file-contains',
+        description: 'Fly deploy is gated on the token secret',
+        path: '.github/workflows/deploy-api.yml',
+        pattern: 'FLY_API_TOKEN',
+      },
     ],
-    verifyCommands: [
-      { command: 'gh workflow list', requiresBinary: 'gh', optional: true },
-    ],
+    verifyCommands: [{ command: 'gh workflow list', requiresBinary: 'gh', optional: true }],
     requiredConfigKeys: [],
     requiredManualGates: [],
     status: 'pending',
@@ -42,13 +58,34 @@ export const CROSSCUTTING_TASKS: readonly TaskDefinition[] = [
     dependsOn: ['1.5-facilitator'],
     ownedPaths: ['security/**'],
     acceptanceCriteria: [
-      { kind: 'file-exists', description: 'Threat model document exists', path: 'security/threat-model.md' },
-      { kind: 'file-contains', description: 'Hot signer compromise addressed', path: 'security/threat-model.md', pattern: 'hot signer' },
-      { kind: 'file-contains', description: 'Slippage manipulation addressed', path: 'security/threat-model.md', pattern: 'slippage' },
-      { kind: 'file-exists', description: 'Audit checklist exists', path: 'security/audit-checklist.md' },
+      {
+        kind: 'file-exists',
+        description: 'Threat model document exists',
+        path: 'security/threat-model.md',
+      },
+      {
+        kind: 'file-contains',
+        description: 'Hot signer compromise addressed',
+        path: 'security/threat-model.md',
+        pattern: 'hot signer',
+      },
+      {
+        kind: 'file-contains',
+        description: 'Slippage manipulation addressed',
+        path: 'security/threat-model.md',
+        pattern: 'slippage',
+      },
+      {
+        kind: 'file-exists',
+        description: 'Audit checklist exists',
+        path: 'security/audit-checklist.md',
+      },
     ],
     verifyCommands: [
-      { command: 'git grep -nIE "(sk_live_|whsec_|-----BEGIN [A-Z ]*PRIVATE KEY)" -- . ":(exclude)docs/reference" ; test $? -eq 1' },
+      {
+        command:
+          'git grep -nIE "(sk_live_|whsec_|-----BEGIN [A-Z ]*PRIVATE KEY)" -- . ":(exclude)docs/reference" ; test $? -eq 1',
+      },
     ],
     requiredConfigKeys: [],
     requiredManualGates: [],
@@ -67,8 +104,15 @@ export const CROSSCUTTING_TASKS: readonly TaskDefinition[] = [
     dependsOn: ['sec.1-threat-model', '2.2-deploy-scripts'],
     ownedPaths: ['security/audit-checklist.md', 'security/reports/**'],
     acceptanceCriteria: [
-      { kind: 'file-exists', description: 'Audit checklist exists', path: 'security/audit-checklist.md' },
-      { kind: 'manual', description: 'Smart contracts audited or a formal review completed and signed off' },
+      {
+        kind: 'file-exists',
+        description: 'Audit checklist exists',
+        path: 'security/audit-checklist.md',
+      },
+      {
+        kind: 'manual',
+        description: 'Smart contracts audited or a formal review completed and signed off',
+      },
       { kind: 'manual', description: 'Hot signer moved to MPC with a per-session spend limit' },
     ],
     verifyCommands: [],
@@ -90,7 +134,11 @@ export const CROSSCUTTING_TASKS: readonly TaskDefinition[] = [
     ownedPaths: ['tests/**'],
     acceptanceCriteria: [
       { kind: 'file-exists', description: 'Integration suite exists', path: 'tests/integration' },
-      { kind: 'command', description: 'Integration suite passes', command: 'bun run test:integration' },
+      {
+        kind: 'command',
+        description: 'Integration suite passes',
+        command: 'bun run test:integration',
+      },
       { kind: 'command', description: 'Coverage threshold met', command: 'bun test --coverage' },
     ],
     verifyCommands: [{ command: 'bun run test:integration', optional: true }],
@@ -113,11 +161,20 @@ export const CROSSCUTTING_TASKS: readonly TaskDefinition[] = [
     acceptanceCriteria: [
       { kind: 'file-exists', description: 'API Dockerfile exists', path: 'apps/api/Dockerfile' },
       { kind: 'file-exists', description: 'Fly configuration exists', path: 'fly.toml' },
-      { kind: 'command', description: 'Image builds', command: 'docker build -f apps/api/Dockerfile -t anyx-api:ci .', requiresBinary: 'docker' },
+      {
+        kind: 'command',
+        description: 'Image builds',
+        command: 'docker build -f apps/api/Dockerfile -t anyx-api:ci .',
+        requiresBinary: 'docker',
+      },
       { kind: 'manual', description: 'Staging deploy completed and /health returned 200' },
     ],
     verifyCommands: [
-      { command: 'docker build -f apps/api/Dockerfile -t anyx-api:ci .', requiresBinary: 'docker', optional: true },
+      {
+        command: 'docker build -f apps/api/Dockerfile -t anyx-api:ci .',
+        requiresBinary: 'docker',
+        optional: true,
+      },
     ],
     requiredConfigKeys: ['FLY_API_TOKEN'],
     requiredManualGates: ['fly-deploy-token'],
@@ -136,9 +193,22 @@ export const CROSSCUTTING_TASKS: readonly TaskDefinition[] = [
     dependsOn: ['1.7-sdk', '6.1-api-keys-billing'],
     ownedPaths: ['growth/pricing.ts', 'growth/README.md'],
     acceptanceCriteria: [
-      { kind: 'file-exists', description: 'Pricing configuration exists', path: 'growth/pricing.ts' },
-      { kind: 'file-contains', description: 'Per-pair spreads encoded', path: 'growth/pricing.ts', pattern: 'bps' },
-      { kind: 'manual', description: 'A $1 test payment was routed and the collected fee matched the configured spread' },
+      {
+        kind: 'file-exists',
+        description: 'Pricing configuration exists',
+        path: 'growth/pricing.ts',
+      },
+      {
+        kind: 'file-contains',
+        description: 'Per-pair spreads encoded',
+        path: 'growth/pricing.ts',
+        pattern: 'bps',
+      },
+      {
+        kind: 'manual',
+        description:
+          'A $1 test payment was routed and the collected fee matched the configured spread',
+      },
     ],
     verifyCommands: [{ command: 'bun test growth', optional: true }],
     requiredConfigKeys: [],

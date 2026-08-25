@@ -1,13 +1,18 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { OrchestratorConfig } from '../config/types.ts';
-import type { AcceptanceCriterion, TaskDefinition, VerifyCommand } from '../tasks/types.ts';
 import type { CommandResult } from '../shared/types.ts';
+import type { AcceptanceCriterion, TaskDefinition, VerifyCommand } from '../tasks/types.ts';
 import { firstWord, hasBinary, runCommand, skipped } from './exec.ts';
 import type { RuntimePaths } from './paths.ts';
 import { sanitizeId, taskLogDir } from './paths.ts';
 
-export type CheckKind = 'verify-command' | 'acceptance-command' | 'file-exists' | 'file-contains' | 'manual';
+export type CheckKind =
+  | 'verify-command'
+  | 'acceptance-command'
+  | 'file-exists'
+  | 'file-contains'
+  | 'manual';
 
 export interface CheckResult {
   readonly label: string;
@@ -163,7 +168,17 @@ async function evaluateVerifyCommand(
 }
 
 /** Commands whose absence should be reported as a skip rather than a failure. */
-const OPTIONAL_BINARIES = new Set(['forge', 'docker', 'flyctl', 'gh', 'psql', 'redis-cli', 'slither', 'semgrep', 'npm']);
+const OPTIONAL_BINARIES = new Set([
+  'forge',
+  'docker',
+  'flyctl',
+  'gh',
+  'psql',
+  'redis-cli',
+  'slither',
+  'semgrep',
+  'npm',
+]);
 
 function inferBinary(command: string): string | undefined {
   const head = firstWord(command);
@@ -223,7 +238,8 @@ export function verificationSummary(result: VerificationResult): string {
   const parts = [`${passed}/${result.checks.length} checks passed`];
   if (result.failures.length > 0) parts.push(`${result.failures.length} failed`);
   if (result.skippedChecks.length > 0) parts.push(`${result.skippedChecks.length} skipped`);
-  if (result.manualChecks.length > 0) parts.push(`${result.manualChecks.length} need human attestation`);
+  if (result.manualChecks.length > 0)
+    parts.push(`${result.manualChecks.length} need human attestation`);
   return parts.join(', ');
 }
 

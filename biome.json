@@ -31,7 +31,7 @@
   "javascript": {
     "formatter": {
       "quoteStyle": "single",
-      "semicolons": "asNeeded",
+      "semicolons": "always",
       "trailingCommas": "all",
       "arrowParentheses": "always"
     }
@@ -55,7 +55,8 @@
       },
       "suspicious": {
         "noExplicitAny": "error",
-        "noConsole": "off"
+        "noConsole": "off",
+        "noUndeclaredEnvVars": "off"
       },
       "correctness": {
         "noUnusedVariables": "error",
@@ -73,5 +74,21 @@
         "organizeImports": "on"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "orchestrator/config/gates.ts",
+        "orchestrator/pipelines/**",
+        "orchestrator/cli.ts"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noTemplateCurlyInString": "off"
+          }
+        }
+      }
+    }
+  ]
 }

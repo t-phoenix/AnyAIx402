@@ -205,10 +205,7 @@ export function tasksInPhase(
 }
 
 /** All tasks that transitively depend on the given task. */
-export function downstreamOf(
-  tasks: readonly TaskDefinition[],
-  taskId: string,
-): readonly string[] {
+export function downstreamOf(tasks: readonly TaskDefinition[], taskId: string): readonly string[] {
   const result = new Set<string>();
   let frontier = [taskId];
   while (frontier.length > 0) {

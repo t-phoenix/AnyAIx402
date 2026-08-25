@@ -74,14 +74,7 @@ const productionStage: DeployStageConfig = {
   healthCheckRetries: 30,
   healthCheckDelayMs: 5000,
   rollbackCommand: 'flyctl releases rollback --app anyx-api --yes',
-  requiredGates: [
-    'postgres',
-    'redis',
-    'fly-deploy-token',
-    'evm-rpc',
-    'facilitator',
-    'hot-signer',
-  ],
+  requiredGates: ['postgres', 'redis', 'fly-deploy-token', 'evm-rpc', 'facilitator', 'hot-signer'],
   autoApprove: false,
 };
 

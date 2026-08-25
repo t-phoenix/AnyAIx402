@@ -11,10 +11,23 @@ export const PHASE_4_TASKS: readonly TaskDefinition[] = [
     dependsOn: ['3.2-reserve-pool'],
     ownedPaths: ['apps/lightning/**'],
     acceptanceCriteria: [
-      { kind: 'file-exists', description: 'Lightning service exists', path: 'apps/lightning/src/index.ts' },
-      { kind: 'file-contains', description: 'Invoice generation implemented', path: 'apps/lightning/src/index.ts', pattern: 'invoice' },
+      {
+        kind: 'file-exists',
+        description: 'Lightning service exists',
+        path: 'apps/lightning/src/index.ts',
+      },
+      {
+        kind: 'file-contains',
+        description: 'Invoice generation implemented',
+        path: 'apps/lightning/src/index.ts',
+        pattern: 'invoice',
+      },
       { kind: 'command', description: 'Lightning tests pass', command: 'bun test apps/lightning' },
-      { kind: 'manual', description: 'A real BOLT-11 invoice was paid on a live node and settled the corresponding x402 payment' },
+      {
+        kind: 'manual',
+        description:
+          'A real BOLT-11 invoice was paid on a live node and settled the corresponding x402 payment',
+      },
     ],
     verifyCommands: [{ command: 'bun test apps/lightning' }, { command: 'bun run typecheck' }],
     requiredConfigKeys: ['LND_GRPC_HOST', 'LND_TLS_CERT_PATH', 'LND_MACAROON_PATH'],

@@ -11,9 +11,21 @@ export const PHASE_5_TASKS: readonly TaskDefinition[] = [
     dependsOn: ['1.7-sdk'],
     ownedPaths: ['apps/docs/**', 'docs/guides/**'],
     acceptanceCriteria: [
-      { kind: 'file-exists', description: 'Quickstart guide exists', path: 'docs/guides/quickstart.md' },
-      { kind: 'file-exists', description: 'SDK reference exists', path: 'docs/guides/sdk-reference.md' },
-      { kind: 'command', description: 'Docs site builds', command: 'bun run --cwd apps/docs build' },
+      {
+        kind: 'file-exists',
+        description: 'Quickstart guide exists',
+        path: 'docs/guides/quickstart.md',
+      },
+      {
+        kind: 'file-exists',
+        description: 'SDK reference exists',
+        path: 'docs/guides/sdk-reference.md',
+      },
+      {
+        kind: 'command',
+        description: 'Docs site builds',
+        command: 'bun run --cwd apps/docs build',
+      },
     ],
     verifyCommands: [{ command: 'bun run --cwd apps/docs build', optional: true }],
     requiredConfigKeys: [],
@@ -34,8 +46,18 @@ export const PHASE_5_TASKS: readonly TaskDefinition[] = [
     ownedPaths: ['docs/llms.txt'],
     acceptanceCriteria: [
       { kind: 'file-exists', description: 'llms.txt exists', path: 'docs/llms.txt' },
-      { kind: 'file-contains', description: 'Quote endpoint documented', path: 'docs/llms.txt', pattern: '/v1/quote' },
-      { kind: 'file-contains', description: 'Error codes documented', path: 'docs/llms.txt', pattern: 'QUOTE_EXPIRED' },
+      {
+        kind: 'file-contains',
+        description: 'Quote endpoint documented',
+        path: 'docs/llms.txt',
+        pattern: '/v1/quote',
+      },
+      {
+        kind: 'file-contains',
+        description: 'Error codes documented',
+        path: 'docs/llms.txt',
+        pattern: 'QUOTE_EXPIRED',
+      },
     ],
     verifyCommands: [],
     requiredConfigKeys: [],
@@ -56,8 +78,18 @@ export const PHASE_5_TASKS: readonly TaskDefinition[] = [
     ownedPaths: ['docs/openapi.yaml'],
     acceptanceCriteria: [
       { kind: 'file-exists', description: 'OpenAPI spec exists', path: 'docs/openapi.yaml' },
-      { kind: 'file-contains', description: 'OpenAPI 3.1 declared', path: 'docs/openapi.yaml', pattern: 'openapi:\\s*3\\.1' },
-      { kind: 'file-contains', description: 'Pay endpoint documented', path: 'docs/openapi.yaml', pattern: '/v1/pay' },
+      {
+        kind: 'file-contains',
+        description: 'OpenAPI 3.1 declared',
+        path: 'docs/openapi.yaml',
+        pattern: 'openapi:\\s*3\\.1',
+      },
+      {
+        kind: 'file-contains',
+        description: 'Pay endpoint documented',
+        path: 'docs/openapi.yaml',
+        pattern: '/v1/pay',
+      },
     ],
     verifyCommands: [],
     requiredConfigKeys: [],

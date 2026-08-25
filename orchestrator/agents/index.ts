@@ -39,9 +39,7 @@ export const AGENT_REGISTRY: readonly AgentDefinition[] = [
   growthAgent,
 ];
 
-const BY_ID = new Map<AgentId, AgentDefinition>(
-  AGENT_REGISTRY.map((agent) => [agent.id, agent]),
-);
+const BY_ID = new Map<AgentId, AgentDefinition>(AGENT_REGISTRY.map((agent) => [agent.id, agent]));
 
 export function getAgent(id: AgentId): AgentDefinition {
   const agent = BY_ID.get(id);

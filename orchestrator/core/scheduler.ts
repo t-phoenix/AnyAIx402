@@ -88,7 +88,11 @@ export function selectRunnableTasks(input: SchedulerInput): Selection {
       continue;
     }
     if (entry.status === 'needs-human') {
-      deferred.push({ task, reason: 'needs-human', detail: ['escalated; clear it with `bugs` or state edit'] });
+      deferred.push({
+        task,
+        reason: 'needs-human',
+        detail: ['escalated; clear it with `bugs` or state edit'],
+      });
       continue;
     }
     if (entry.unmetDependencies.length > 0) {

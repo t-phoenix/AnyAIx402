@@ -31,10 +31,7 @@ export const protocolAgent: AgentDefinition = {
     'A signed authorization round-trips through verifyAuthorization',
     'Facilitator client falls back within 2s when the primary returns 5xx',
   ],
-  references: [
-    'docs/reference/whitepaper.md',
-    'docs/reference/agent-build-roadmap.md',
-  ],
+  references: ['docs/reference/whitepaper.md', 'docs/reference/agent-build-roadmap.md'],
   domainRules: [
     'Use viem v2, never ethers.',
     'The EIP-712 domain for USDC on Base is { name: "USD Coin", version: "2", chainId: 8453, verifyingContract: <usdc> }.',

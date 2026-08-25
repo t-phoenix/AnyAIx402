@@ -11,9 +11,23 @@ export const PHASE_3_TASKS: readonly TaskDefinition[] = [
     dependsOn: ['1.6-api-server'],
     ownedPaths: ['packages/core/src/bridge/**'],
     acceptanceCriteria: [
-      { kind: 'file-exists', description: 'CCTP module exists', path: 'packages/core/src/bridge/cctp.ts' },
-      { kind: 'file-contains', description: 'Burn call implemented', path: 'packages/core/src/bridge/cctp.ts', pattern: 'depositForBurn' },
-      { kind: 'file-contains', description: 'Attestation polling implemented', path: 'packages/core/src/bridge/cctp.ts', pattern: 'attestation' },
+      {
+        kind: 'file-exists',
+        description: 'CCTP module exists',
+        path: 'packages/core/src/bridge/cctp.ts',
+      },
+      {
+        kind: 'file-contains',
+        description: 'Burn call implemented',
+        path: 'packages/core/src/bridge/cctp.ts',
+        pattern: 'depositForBurn',
+      },
+      {
+        kind: 'file-contains',
+        description: 'Attestation polling implemented',
+        path: 'packages/core/src/bridge/cctp.ts',
+        pattern: 'attestation',
+      },
       { kind: 'command', description: 'Bridge tests pass', command: 'bun test packages/core' },
     ],
     verifyCommands: [{ command: 'bun test packages/core' }, { command: 'bun run typecheck' }],
@@ -32,12 +46,33 @@ export const PHASE_3_TASKS: readonly TaskDefinition[] = [
     summary:
       'Write ReservePool.sol holding the Base USDC float with depositFloat, frontPayment restricted to the router, replenish, getAvailableFloat and getUtilization, emitting FloatDeployed and FloatReplenished. Add packages/core/src/bridge/reservePool.ts with checkFloat, requestFloat and replenishFloat, and refuse to front above the configured utilization ceiling.',
     dependsOn: ['3.1-cctp', '2.1-anyx-router'],
-    ownedPaths: ['packages/contracts/src/ReservePool.sol', 'packages/core/src/bridge/reservePool.ts'],
+    ownedPaths: [
+      'packages/contracts/src/ReservePool.sol',
+      'packages/core/src/bridge/reservePool.ts',
+    ],
     acceptanceCriteria: [
-      { kind: 'file-exists', description: 'ReservePool contract exists', path: 'packages/contracts/src/ReservePool.sol' },
-      { kind: 'file-exists', description: 'Float client exists', path: 'packages/core/src/bridge/reservePool.ts' },
-      { kind: 'file-contains', description: 'Utilization reporting implemented', path: 'packages/contracts/src/ReservePool.sol', pattern: 'getUtilization' },
-      { kind: 'command', description: 'Contract tests pass', command: 'forge test -vvv', requiresBinary: 'forge' },
+      {
+        kind: 'file-exists',
+        description: 'ReservePool contract exists',
+        path: 'packages/contracts/src/ReservePool.sol',
+      },
+      {
+        kind: 'file-exists',
+        description: 'Float client exists',
+        path: 'packages/core/src/bridge/reservePool.ts',
+      },
+      {
+        kind: 'file-contains',
+        description: 'Utilization reporting implemented',
+        path: 'packages/contracts/src/ReservePool.sol',
+        pattern: 'getUtilization',
+      },
+      {
+        kind: 'command',
+        description: 'Contract tests pass',
+        command: 'forge test -vvv',
+        requiresBinary: 'forge',
+      },
     ],
     verifyCommands: [
       { command: 'forge test -vvv', cwd: 'packages/contracts', requiresBinary: 'forge' },

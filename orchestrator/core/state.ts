@@ -102,7 +102,11 @@ export function setTaskStatus(
   return entry;
 }
 
-export function startRun(state: OrchestratorState, mode: RunMode, taskIds: readonly string[]): RunRecord {
+export function startRun(
+  state: OrchestratorState,
+  mode: RunMode,
+  taskIds: readonly string[],
+): RunRecord {
   const record: RunRecord = {
     id: `run-${new Date().toISOString().replace(/[:.]/g, '-')}`,
     mode,
