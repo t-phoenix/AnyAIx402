@@ -1,0 +1,55 @@
+# Local development stack for AnyX (docs/AGENTS.md Task 0.3).
+# Usage: docker compose up -d
+# Postgres + Redis match the defaults in .env.example (Tier 0 — no account needed).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: anyx-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: anyx
+      POSTGRES_PASSWORD: anyx
+      POSTGRES_DB: anyx
+    ports:
+      - '5432:5432'
+    volumes:
+      - anyx-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U anyx -d anyx']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: anyx-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - anyx-redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Optional: web UI for inspecting Postgres during local development.
+  # Visit http://localhost:5050 (login: admin@anyx.local / anyx).
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: anyx-pgadmin
+    restart: unless-stopped
+    profiles: ['tools']
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@anyx.local
+      PGADMIN_DEFAULT_PASSWORD: anyx
+    ports:
+      - '5050:80'
+    depends_on:
+      - postgres
+
+volumes:
+  anyx-postgres-data:
+  anyx-redis-data:

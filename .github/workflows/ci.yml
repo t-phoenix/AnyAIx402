@@ -1,0 +1,70 @@
+name: CI
+
+# Runs on every PR (docs/MULTI_AGENT_SYSTEM_PLAN.md §4). Lint -> typecheck -> unit tests -> build.
+# Foundry contract tests and Fly.io/npm publish/deploy steps belong to later-phase agents
+# (Smart Contract Agent / Phase 2, Release Agent / ongoing) and are intentionally not here yet.
+
+on:
+  pull_request:
+    branches: ['**']
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: anyx
+          POSTGRES_PASSWORD: anyx
+          POSTGRES_DB: anyx
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U anyx -d anyx"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://anyx:anyx@localhost:5432/anyx
+      REDIS_URL: redis://localhost:6379
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.0'
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint (Biome)
+        run: bun run lint
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Run database migrations
+        run: bun run db:migrate
+
+      - name: Unit tests
+        run: bun run test
+
+      - name: Build
+        run: bun run build

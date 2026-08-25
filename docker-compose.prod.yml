@@ -1,0 +1,54 @@
+# Production-like stack for AnyX (docs/AGENTS.md Task 0.3).
+# No pgAdmin. Named volumes for persistence. Resource limits set conservatively for a small
+# single-node deployment — tune for your actual traffic before relying on this in production.
+# Usage: docker compose -f docker-compose.prod.yml up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: anyx-postgres-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-anyx}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set for production}
+      POSTGRES_DB: ${POSTGRES_DB:-anyx}
+    volumes:
+      - anyx-postgres-prod-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-anyx} -d ${POSTGRES_DB:-anyx}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  redis:
+    image: redis:7-alpine
+    container_name: anyx-redis-prod
+    restart: always
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - anyx-redis-prod-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+volumes:
+  anyx-postgres-prod-data:
+  anyx-redis-prod-data:
