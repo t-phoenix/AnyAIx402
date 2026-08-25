@@ -1,0 +1,46 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# build output
+dist/
+build/
+out/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# test / coverage
+coverage/
+.nyc_output/
+
+# env & secrets
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+*.pem
+*.key
+
+# foundry
+packages/contracts/out/
+packages/contracts/cache/
+packages/contracts/broadcast/
+packages/contracts/lib/
+packages/contracts/deployments/*.local.json
+
+# logs
+*.log
+npm-debug.log*
+yarn-error.log*
+bun-debug.log*
+logs/
+
+# editors / os
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

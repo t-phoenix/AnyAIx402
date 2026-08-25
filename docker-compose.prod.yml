@@ -1,0 +1,107 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: anyx-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-anyx}
+    expose:
+      - '5432'
+    volumes:
+      - anyx-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB:-anyx}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  redis:
+    image: redis:7-alpine
+    container_name: anyx-redis
+    restart: always
+    command:
+      - 'redis-server'
+      - '--appendonly'
+      - 'yes'
+      - '--maxmemory'
+      - '512mb'
+      - '--maxmemory-policy'
+      - 'allkeys-lru'
+    expose:
+      - '6379'
+    volumes:
+      - anyx-redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: anyx-api
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-anyx}
+      REDIS_URL: redis://redis:6379
+      RPC_URL_BASE: ${RPC_URL_BASE}
+      RPC_URL_ETHEREUM: ${RPC_URL_ETHEREUM}
+      PRIVATE_KEY: ${PRIVATE_KEY}
+      ONEINCH_API_KEY: ${ONEINCH_API_KEY}
+      ZEROX_API_KEY: ${ZEROX_API_KEY}
+      FACILITATOR_URL: ${FACILITATOR_URL}
+      FACILITATOR_FALLBACK_URL: ${FACILITATOR_FALLBACK_URL}
+      FEE_BPS: ${FEE_BPS:-20}
+      MIN_FEE_USDC: ${MIN_FEE_USDC:-0.001}
+      API_SECRET: ${API_SECRET}
+      USDC_BASE: ${USDC_BASE:-0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913}
+    ports:
+      - '3000:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'bun', 'run', 'healthcheck']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+volumes:
+  anyx-postgres-data:
+    name: anyx-postgres-data
+  anyx-redis-data:
+    name: anyx-redis-data

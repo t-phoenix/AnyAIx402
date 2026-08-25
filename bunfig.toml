@@ -1,0 +1,8 @@
+[install]
+# Workspace packages resolve to the local source; keep peers installed so viem/zod
+# are shared across @anyx/core, @anyx/sdk and apps/api.
+peer = true
+exact = false
+
+[test]
+coverageSkipTestFiles = true

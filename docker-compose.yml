@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: anyx-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-anyx}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-anyx}
+      POSTGRES_DB: ${POSTGRES_DB:-anyx}
+    ports:
+      - '5432:5432'
+    volumes:
+      - anyx-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-anyx} -d ${POSTGRES_DB:-anyx}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: anyx-redis
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    ports:
+      - '6379:6379'
+    volumes:
+      - anyx-redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: anyx-pgadmin
+    restart: unless-stopped
+    profiles: ['tools']
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-dev@anyx.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-anyx}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - '5050:80'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - anyx-pgadmin-data:/var/lib/pgadmin
+
+volumes:
+  anyx-postgres-data:
+  anyx-redis-data:
+  anyx-pgadmin-data:

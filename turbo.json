@@ -1,0 +1,63 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "stream",
+  "globalDependencies": ["tsconfig.base.json", "biome.json", "bunfig.toml"],
+  "globalEnv": [
+    "NODE_ENV",
+    "DATABASE_URL",
+    "REDIS_URL",
+    "RPC_URL_BASE",
+    "RPC_URL_ETHEREUM",
+    "RPC_URL_SOLANA",
+    "PRIVATE_KEY",
+    "ONEINCH_API_KEY",
+    "ZEROX_API_KEY",
+    "CCTP_ATTESTER_URL",
+    "FACILITATOR_URL",
+    "FACILITATOR_FALLBACK_URL",
+    "FEE_BPS",
+    "MIN_FEE_USDC",
+    "PORT",
+    "API_SECRET",
+    "USDC_BASE",
+    "ANYX_ROUTER",
+    "FEE_COLLECTOR",
+    "CORS_ORIGINS",
+    "NEXT_PUBLIC_API_BASE_URL"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.test.ts", "!README.md"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test:coverage": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
+    },
+    "lint": {
+      "outputs": []
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:generate": {
+      "cache": false
+    },
+    "db:migrate": {
+      "cache": false
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}
