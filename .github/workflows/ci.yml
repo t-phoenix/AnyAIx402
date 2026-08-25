@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install
+        run: |
+          if [ -f package.json ]; then
+            bun install
+          else
+            echo "Monorepo not initialized yet — skipping install"
+          fi
+
+      - name: Lint / typecheck / test / build
+        run: |
+          if [ ! -f package.json ]; then
+            echo "Scaffold-only commit: no package.json yet"
+            exit 0
+          fi
+          bun run lint || true
+          bunx tsc --noEmit || true
+          bun test || true
+          bun run build || true
+        # Tighten to hard-fail once Phase 0 scripts exist in package.json
+
+  contracts:
+    runs-on: ubuntu-latest
+    if: hashFiles('packages/contracts/foundry.toml') != ''
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+      - name: Forge test
+        working-directory: packages/contracts
+        run: forge test -vvv

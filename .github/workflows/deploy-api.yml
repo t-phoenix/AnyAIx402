@@ -1,0 +1,38 @@
+name: Deploy API
+
+on:
+  workflow_dispatch:
+  # Uncomment after secrets + Phase 1 API exist:
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'apps/api/**'
+  #     - 'packages/core/**'
+  #     - 'packages/db/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Gate — require Dockerfile
+        run: |
+          if [ ! -f apps/api/Dockerfile ]; then
+            echo "apps/api/Dockerfile missing — complete Phase 1 before deploy"
+            exit 1
+          fi
+
+      - name: Note secrets
+        run: |
+          echo "Requires repo secrets: FLY_API_TOKEN"
+          echo "Requires runtime secrets on Fly: DATABASE_URL, REDIS_URL, PRIVATE_KEY, DEX keys, etc."
+
+      # - uses: superfly/flyctl-actions/setup-flyctl@master
+      # - run: flyctl deploy --app anyx-api --config apps/api/fly.toml
+      #   env:
+      #     FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Placeholder
+        run: echo "Deploy steps commented until Fly app + secrets are configured by human."

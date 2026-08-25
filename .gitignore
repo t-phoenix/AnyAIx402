@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+.turbo/
+dist/
+build/
+coverage/
+out/
+
+# Env / secrets — NEVER commit real values
+.env
+.env.local
+.env.*.local
+config/secrets.local.yaml
+*.pem
+*.macaroon
+*.key
+
+# Foundry
+packages/contracts/cache/
+packages/contracts/out/
+packages/contracts/broadcast/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
+bun-debug.log*
+
+# Deploy artifacts that may contain machine specifics
+artifacts/deploys/*.log
