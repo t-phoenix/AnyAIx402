@@ -1,0 +1,26 @@
+{
+  "name": "@anyx/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AnyX REST API: quote, pay, receipt and token endpoints for x402 multi-token payments",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "biome check src",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "clean": "rm -rf dist .turbo coverage *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@anyx/core": "workspace:*",
+    "@anyx/db": "workspace:*",
+    "hono": "^4.10.3",
+    "ioredis": "^5.9.0",
+    "zod": "^3.25.76"
+  }
+}
