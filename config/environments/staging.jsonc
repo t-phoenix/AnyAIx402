@@ -1,0 +1,58 @@
+// Staging overlay.
+//
+// Staging exists to catch what local cannot: real RPC behaviour, a real
+// facilitator, real bridge latency. It runs on testnet with MPC signing, so it
+// exercises the production code paths without production risk.
+{
+  "runtime": {
+    "env": "staging",
+    "logLevel": "info"
+  },
+
+  "network": {
+    // Base Sepolia.
+    "defaultChainId": 84532
+  },
+
+  "signer": {
+    // MPC here too. If staging uses a raw key, staging is not testing
+    // the thing that will actually run in production.
+    "mode": "turnkey",
+    "maxUsdcPerSession": 100
+  },
+
+  "fees": {
+    // Same spread as production, so the revenue maths is exercised honestly.
+    "feeBps": 20
+  },
+
+  "api": {
+    "baseUrl": "https://anyx-api-staging.fly.dev",
+    // No wildcard beyond local development.
+    "corsAllowedOrigins": "https://staging.anyx.xyz"
+  },
+
+  "bridge": {
+    // A small float is enough to prove the mechanism.
+    "floatPoolTargetUsdc": 100
+  },
+
+  "deploy": {
+    "flyAppApi": "anyx-api-staging",
+    "healthcheckUrl": "https://anyx-api-staging.fly.dev/health"
+  },
+
+  "orchestrator": {
+    "concurrency": 3,
+    // Staging is the environment that is allowed to deploy itself.
+    "autoApproveProduction": false,
+    "deploy": {
+      "staging": {
+        "deployCommand": "flyctl deploy --app anyx-api-staging --remote-only",
+        "healthCheckUrl": "https://anyx-api-staging.fly.dev/health",
+        "rollbackCommand": "flyctl releases rollback --app anyx-api-staging --yes",
+        "autoApprove": true
+      }
+    }
+  }
+}

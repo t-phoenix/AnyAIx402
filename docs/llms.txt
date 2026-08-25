@@ -1,0 +1,172 @@
+# AnyX
+
+> AnyX is a universal payment adapter for the x402 protocol. It lets any token
+> holder — ETH, USDT, WBTC, cbBTC, SOL, BTC via Lightning, or any ERC-20 — pay
+> x402-gated APIs without manually acquiring USDC. AnyX handles the swap, the
+> EIP-3009 authorization and the settlement. API providers receive standard
+> USDC on Base via x402, unchanged.
+
+NOTE: The hostnames below are placeholders. This project is pre-launch and no
+public endpoint is deployed yet. Run it yourself with `./scripts/setup.sh` and
+use `http://localhost:3000`.
+
+## What AnyX does
+
+- Intercepts the 402 challenge and reads the required USDC amount and recipient
+- Quotes the payer's token against USDC via 1inch and 0x in parallel, taking the better route
+- Applies a transparent spread (0.05%-0.50% depending on the pair)
+- Executes the swap, reverting if the output would fall short of the required amount
+- Signs EIP-3009 transferWithAuthorization on the payer's behalf
+- Submits to an x402 facilitator, with automatic failover to a second one
+- Returns the API response together with an itemized payment receipt
+
+## What AnyX does not do
+
+- Change the x402 protocol, or require anything of the API provider
+- Custody funds, beyond the seconds between a Lightning settlement and the USDC authorization
+- Accept fiat
+- Allow a partial payment. A swap that comes up short reverts.
+
+## API base URL
+
+http://localhost:3000  (self-hosted; no public deployment yet)
+
+## Authentication
+
+Optional API key in the `X-API-Key` header.
+Free tier: 100 requests/minute. Pro tier: 1000 requests/minute.
+
+## Core endpoints
+
+### Get a quote — always call this before paying
+
+POST /v1/quote
+
+```json
+{
+  "endpointUrl": "https://api.example.com/data",
+  "inputToken": "ETH",
+  "inputChainId": 8453
+}
+```
+
+Returns `{ quoteId, inputToken, inputAmount, usdcRequired, fee, expiresAt, route }`.
+Quotes are valid for 30 seconds, bound to DEX quote freshness.
+
+### Pay
+
+POST /v1/pay
+
+```json
+{
+  "quoteId": "uuid-from-the-quote",
+  "walletAddress": "0x..."
+}
+```
+
+Returns `{ receiptId, txHash, apiResponse, status }`.
+
+### Retrieve a receipt
+
+GET /v1/receipt/{receiptId}
+
+Returns the itemized breakdown: input token and amount, USD equivalent, the USDC
+sent to the provider, the AnyX fee, actual slippage, transaction hash, block
+number, and the facilitator used.
+
+### List supported tokens
+
+GET /v1/tokens
+
+Returns every supported input token with its address, chain and current USD price.
+
+### Lightning invoice
+
+POST /v1/lightning/invoice
+
+```json
+{ "endpointUrl": "https://api.example.com/data" }
+```
+
+Returns a BOLT-11 invoice, the amount in satoshis, the USDC equivalent and an
+expiry. Not yet implemented; it is Phase 4.
+
+### Health
+
+GET /health
+
+Returns status plus which capabilities are degraded and why. Useful for
+determining what a given deployment can actually do.
+
+## SDK
+
+```bash
+npm install @anyx/sdk
+```
+
+```ts
+import { UPA } from '@anyx/sdk';
+
+const upa = new UPA({ preferredToken: 'ETH', preferredChainId: 8453, wallet });
+
+// A drop-in for fetch. A 402 is handled internally.
+const res = await upa.fetch('https://api.example.com/data');
+const data = await res.json();
+```
+
+Methods: `fetch(url, init?)`, `quote(url)`, `pay(url, quoteId?)`,
+`getReceipt(id)`, `getSupportedTokens()`.
+Events: `payment`, `swap`, `error`.
+
+## Supported tokens
+
+Base (chain 8453): ETH, WETH, USDC, USDT, cbBTC, and any ERC-20 routable by 0x
+Ethereum (chain 1): ETH, WETH, USDT, WBTC
+Solana (chain 101): SOL, USDC, SPL tokens — via Jupiter and Circle CCTP
+Bitcoin: BTC over Lightning — Phase 4
+
+## Fees
+
+A swap spread, applied on top of the required amount rather than taken out of
+it, so the provider always receives exactly what it asked for:
+
+    inputAmount = requiredUSDC / (1 - feeBps / 10000)
+
+| Pair | Spread |
+| --- | --- |
+| USDT to USDC | 0.05% |
+| ETH to USDC | 0.20% |
+| BTC to USDC | 0.50% |
+| Cross-chain | 0.30% |
+
+No flat fee on the free tier.
+
+## Errors
+
+All errors return `{ "error": { "code": "...", "message": "...", "details": {} } }`.
+
+Codes: QUOTE_NOT_FOUND, QUOTE_EXPIRED, SWAP_FAILED, SETTLEMENT_FAILED,
+INVALID_INPUT, RATE_LIMITED, INSUFFICIENT_BALANCE.
+
+## Guidance for AI agents
+
+- Call `/v1/quote` before `/v1/pay` and check the fee against your budget.
+- A quote expires in 30 seconds. Do not cache one across turns.
+- `upa.fetch()` is the simplest integration: it behaves like `fetch` and handles
+  a 402 without you writing any payment logic.
+- Payments are irreversible. Treat `maxFeePercent` in the SDK config as a real
+  guardrail rather than a formality.
+- A `SWAP_FAILED` usually means slippage moved beyond tolerance. Re-quote rather
+  than retrying the same quote.
+
+## Source
+
+https://github.com/t-phoenix/AnyAIx402  (Apache-2.0)
+
+## Documentation
+
+Architecture: docs/architecture.md
+Getting started: docs/getting-started.md
+Configuration: docs/configuration.md
+Security: docs/security.md
+Build plan: MASTER_PLAN.md

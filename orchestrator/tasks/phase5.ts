@@ -1,0 +1,102 @@
+import type { TaskDefinition } from './types.ts';
+
+export const PHASE_5_TASKS: readonly TaskDefinition[] = [
+  {
+    id: '5.1-docs-site',
+    title: 'Documentation site',
+    phase: 5,
+    agentId: 'docs',
+    summary:
+      'Set up a Fumadocs site in apps/docs covering Introduction, a five minute Quickstart, the SDK reference, the REST API reference generated from openapi.yaml, Smart Contracts, the AI Agent Integration guide (LangChain, CrewAI, OpenAI function calling, AgentKit) and Self-Hosting.',
+    dependsOn: ['1.7-sdk'],
+    ownedPaths: ['apps/docs/**', 'docs/guides/**'],
+    acceptanceCriteria: [
+      {
+        kind: 'file-exists',
+        description: 'Quickstart guide exists',
+        path: 'docs/guides/quickstart.md',
+      },
+      {
+        kind: 'file-exists',
+        description: 'SDK reference exists',
+        path: 'docs/guides/sdk-reference.md',
+      },
+      {
+        kind: 'command',
+        description: 'Docs site builds',
+        command: 'bun run --cwd apps/docs build',
+      },
+    ],
+    verifyCommands: [{ command: 'bun run --cwd apps/docs build', optional: true }],
+    requiredConfigKeys: [],
+    requiredManualGates: [],
+    status: 'pending',
+    priority: 50,
+    estimatedComplexity: 'medium',
+    references: ['docs/reference/agent-build-roadmap.md#task-51--documentation-site'],
+  },
+  {
+    id: '5.2-llms-txt',
+    title: 'llms.txt AI discovery file',
+    phase: 5,
+    agentId: 'docs',
+    summary:
+      'Write docs/llms.txt following the llmstxt.org format: what AnyX does, the API base URL, authentication and tier limits, the quote/pay/tokens endpoints with request and response shapes, the SDK snippet, the supported token list, the fee table and the error code set. Serve it at /llms.txt.',
+    dependsOn: ['1.6-api-server'],
+    ownedPaths: ['docs/llms.txt'],
+    acceptanceCriteria: [
+      { kind: 'file-exists', description: 'llms.txt exists', path: 'docs/llms.txt' },
+      {
+        kind: 'file-contains',
+        description: 'Quote endpoint documented',
+        path: 'docs/llms.txt',
+        pattern: '/v1/quote',
+      },
+      {
+        kind: 'file-contains',
+        description: 'Error codes documented',
+        path: 'docs/llms.txt',
+        pattern: 'QUOTE_EXPIRED',
+      },
+    ],
+    verifyCommands: [],
+    requiredConfigKeys: [],
+    requiredManualGates: [],
+    status: 'pending',
+    priority: 51,
+    estimatedComplexity: 'small',
+    references: ['docs/reference/agent-build-roadmap.md#task-52--llmstxt-ai-discovery'],
+  },
+  {
+    id: '5.3-openapi',
+    title: 'OpenAPI 3.1 specification',
+    phase: 5,
+    agentId: 'docs',
+    summary:
+      'Write docs/openapi.yaml as a complete OpenAPI 3.1 spec: info, production and development servers, the optional X-API-Key security scheme, all six endpoints with request and response schemas, the 400/401/404/422/429/500 error responses, examples for every endpoint, and components for Quote, PaymentReceipt, Token, LightningInvoice and Error. Serve it at GET /openapi.json and mount Swagger UI at GET /docs.',
+    dependsOn: ['1.6-api-server'],
+    ownedPaths: ['docs/openapi.yaml'],
+    acceptanceCriteria: [
+      { kind: 'file-exists', description: 'OpenAPI spec exists', path: 'docs/openapi.yaml' },
+      {
+        kind: 'file-contains',
+        description: 'OpenAPI 3.1 declared',
+        path: 'docs/openapi.yaml',
+        pattern: 'openapi:\\s*3\\.1',
+      },
+      {
+        kind: 'file-contains',
+        description: 'Pay endpoint documented',
+        path: 'docs/openapi.yaml',
+        pattern: '/v1/pay',
+      },
+    ],
+    verifyCommands: [],
+    requiredConfigKeys: [],
+    requiredManualGates: [],
+    status: 'pending',
+    priority: 52,
+    estimatedComplexity: 'medium',
+    references: ['docs/reference/agent-build-roadmap.md#task-53--openapi-spec'],
+  },
+];

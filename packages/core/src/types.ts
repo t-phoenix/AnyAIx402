@@ -46,12 +46,36 @@ export interface BestQuote {
   inputAmount: string;
   usdcRequired: string;
   usdcOutput: string;
+  /**
+   * Gross USDC the swap must produce so the provider still receives `usdcRequired`
+   * after the AnyX spread. Same units as `usdcOutput`; optional for older quotes.
+   */
+  usdcGross?: string;
   /** AnyX fee, in USDC, as a decimal string */
   fee: string;
   feeBps: number;
   route: DEXQuote;
   expiresAt: string;
   createdAt: string;
+}
+
+/** Spread breakdown produced by `computeFeeBreakdown` (amounts as integer strings). */
+export interface FeeBreakdown {
+  feeBps: number;
+  usdcRequired: string;
+  feeUsdc: string;
+  usdcGross: string;
+}
+
+/** Emitted after a swap executor fronts or routes USDC for an x402 payment. */
+export interface SwapEvent {
+  quoteId: string;
+  source: string;
+  inputToken: string;
+  inputAmount: string;
+  usdcReceived: string;
+  txHash: string | null;
+  at: string;
 }
 
 /** ---------------- x402 protocol (Task 1.3) ---------------- */

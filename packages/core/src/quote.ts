@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { formatUnits, parseUnits } from 'viem';
 import { z } from 'zod';
-import { ConfigMissingError, QuoteError, optionalEnv } from './errors';
+import { ConfigMissingError, QuoteError, SwapError, optionalEnv } from './errors';
+import { usdcToAtomic } from './fees';
 import { getRedisClient } from './lib/redis';
 import type { BestQuote, DEXQuote, QuoteParams, Token } from './types';
 
@@ -294,6 +295,7 @@ export async function getBestQuote(params: QuoteParams): Promise<BestQuote> {
     ),
     usdcRequired: usdcRequired.toFixed(6),
     usdcOutput: usdcWithFee.toFixed(6),
+    usdcGross: usdcWithFee.toFixed(6),
     fee: fee.toFixed(6),
     feeBps,
     route: best,
@@ -328,6 +330,38 @@ export async function getCachedQuote(quoteId: string): Promise<BestQuote | null>
     return JSON.parse(raw) as BestQuote;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Rejects a quote that would settle less USDC than the x402 server asked for.
+ * `minAmountOut` / gross output must cover `usdcRequired` exactly or better.
+ */
+export function assertNoPartialPayment(quote: BestQuote): void {
+  const required = usdcToAtomic(quote.usdcRequired);
+  const output = usdcToAtomic(quote.usdcGross ?? quote.usdcOutput);
+  if (output < required) {
+    throw new QuoteError(
+      'INVALID_INPUT',
+      'Quote would allow a partial payment (output below required USDC)',
+      {
+        quoteId: quote.quoteId,
+        usdcRequired: quote.usdcRequired,
+        usdcOutput: quote.usdcGross ?? quote.usdcOutput,
+      },
+    );
+  }
+}
+
+/** After a swap, the received USDC must cover the amount owed to the API provider. */
+export function assertSwapOutputSufficient(usdcReceived: bigint, usdcRequired: bigint): void {
+  if (usdcReceived < usdcRequired) {
+    throw new SwapError('Swap output is below the USDC required by the x402 challenge', {
+      details: {
+        usdcReceived: usdcReceived.toString(),
+        usdcRequired: usdcRequired.toString(),
+      },
+    });
   }
 }
 

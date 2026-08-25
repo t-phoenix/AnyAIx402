@@ -1,0 +1,273 @@
+# AnyX
+
+> AnyX is a universal payment adapter for the x402 protocol. It enables any token holder
+> (ETH, USDT, WBTC, cbBTC, SOL, BTC via Lightning, and any ERC-20) to pay x402-gated APIs
+> and services without manually acquiring USDC on Base. AnyX intercepts the HTTP 402 challenge,
+> routes the payer's token through a DEX aggregator (1inch, 0x) to obtain USDC, signs an
+> EIP-3009 transferWithAuthorization on behalf of the payer, and submits it to a standard
+> x402 facilitator. API providers receive standard x402-compliant USDC payments — unchanged.
+> AnyX earns a 0.05–0.75% swap spread on every non-USDC payment routed.
+
+## What AnyX Does
+
+- Intercepts HTTP 402 Payment Required responses from any x402-compatible API
+- Reads the required USDC amount, recipient (payTo), and network from the 402 challenge
+- Queries DEX aggregators (1inch Fusion+, 0x Permit2) for best swap rate: input token → USDC
+- Executes the swap atomically and obtains the required USDC amount
+- Signs EIP-3009 transferWithAuthorization (off-chain, gasless)
+- Submits the signed authorization to the x402 facilitator (Coinbase CDP or self-hosted)
+- Returns the 200 OK API response with payment receipt to the caller
+
+## API Base URL
+
+https://api.anyx.xyz
+
+## Authentication
+
+Optional API key in header: X-API-Key: {your_key}
+
+Tiers:
+- Free: 100 req/min, $100/month volume cap, no subscription needed
+- Pro: 1000 req/min, unlimited volume, $49/month via Stripe
+- Enterprise: custom limits, SLA, self-hosted option — contact hello@anyx.xyz
+
+## Core Endpoints
+
+### POST /v1/quote
+Get a swap quote for paying a specific x402 endpoint with your preferred token.
+Always call quote before pay to get the quoteId and confirm the cost.
+
+Request body:
+{
+  "endpointUrl": "https://api.example.com/data",  // URL of the x402-gated resource
+  "inputToken": "ETH",                             // Token symbol to pay with
+  "inputChainId": 8453,                            // Chain ID where you hold the token
+  "slippageBps": 50                                // Optional: slippage tolerance in basis points (default: 50 = 0.5%)
+}
+
+Response:
+{
+  "quoteId": "uuid-v4",
+  "inputToken": "ETH",
+  "inputAmount": "0.000424",          // ETH amount to spend (includes AnyX fee)
+  "inputAmountUSD": "1.002",
+  "usdcRequired": "1.000",            // USDC the API will receive
+  "fee": "0.002",                     // AnyX swap spread in USDC
+  "feeBps": 20,                       // Fee in basis points
+  "route": { "dex": "1inch", "priceImpact": "0.0008" },
+  "expiresAt": "2025-08-25T12:35:00Z"  // Quote valid for 30 seconds
+}
+
+### POST /v1/pay
+Execute the payment using a previously obtained quote.
+
+Request body:
+{
+  "quoteId": "uuid-from-quote",
+  "walletAddress": "0x..."   // Your wallet address (tokens will be pulled from here)
+}
+
+Response:
+{
+  "receiptId": "uuid-v4",
+  "status": "settled",
+  "txHash": "0x...",
+  "blockNumber": 22891234,
+  "inputToken": "ETH",
+  "inputAmount": "0.000424",
+  "usdcSettled": "1.000",
+  "apiResponse": { ... },             // The original API response (200 OK body)
+  "xPaymentResponse": "base64..."     // x402 settlement receipt header value
+}
+
+### GET /v1/receipt/:id
+Retrieve a payment receipt by ID.
+
+Response: Full PaymentReceipt object (same shape as /v1/pay response)
+
+### GET /v1/tokens
+List all supported input tokens with current USD prices.
+
+Response:
+{
+  "tokens": [
+    {
+      "symbol": "ETH",
+      "name": "Ethereum",
+      "address": null,
+      "chainId": 8453,
+      "decimals": 18,
+      "isNative": true,
+      "usdPrice": "2365.42",
+      "swapPath": "direct"
+    },
+    ...
+  ],
+  "updatedAt": "2025-08-25T12:00:00Z"
+}
+
+### POST /v1/lightning/invoice
+Generate a Bitcoin Lightning invoice to pay a specific x402 endpoint.
+Available in Phase 3 (October 2025+).
+
+Request body:
+{
+  "endpointUrl": "https://api.example.com/data"
+}
+
+Response:
+{
+  "bolt11": "lnbc...",           // BOLT-11 Lightning invoice
+  "paymentHash": "0x...",
+  "amountSats": 1068,            // Satoshis to pay (includes AnyX fee)
+  "usdcEquivalent": "1.002",
+  "expiresAt": "2025-08-25T12:05:00Z"
+}
+
+### GET /v1/lightning/status/:paymentHash
+Check if a Lightning invoice has been paid.
+
+Response:
+{
+  "status": "pending" | "paid" | "expired",
+  "settledAt": "2025-08-25T12:01:30Z",
+  "receiptId": "uuid-v4"   // Set when status is 'paid'
+}
+
+## SDK (NPM Package)
+
+Install: npm install @anyx/sdk
+Or: bun add @anyx/sdk
+
+Basic usage:
+```typescript
+import { UPA } from '@anyx/sdk'
+
+const upa = new UPA({
+  preferredToken: 'ETH',
+  preferredChainId: 8453,        // Base mainnet
+  wallet: walletClient,          // viem WalletClient
+  maxSlippage: 0.005,            // 0.5% max slippage
+})
+
+// Drop-in replacement for fetch() — auto-handles 402
+const res = await upa.fetch('https://api.example.com/data')
+const data = await res.json()
+```
+
+Advanced usage:
+```typescript
+// Get quote first, then pay
+const quote = await upa.quote('https://api.example.com/data')
+console.log(`Will cost ${quote.inputAmount} ETH (${quote.usdcRequired} USDC)`)
+
+const receipt = await upa.pay('https://api.example.com/data', { quoteId: quote.quoteId })
+console.log(`Settled. TxHash: ${receipt.txHash}`)
+
+// Event hooks
+upa.on('payment', (receipt) => {
+  console.log(`Paid ${receipt.inputAmount} ${receipt.inputToken}`)
+})
+```
+
+## Supported Input Tokens (v1.0)
+
+Chain: Base (chainId: 8453)
+- ETH (native)
+- USDT (ERC-20): 0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2
+- WETH (ERC-20): 0x4200000000000000000000000000000000000006
+- cbBTC (ERC-20): 0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf
+- Any ERC-20 on Base (via 0x routing)
+
+Chain: Ethereum (chainId: 1) — Phase 2
+- USDT (ERC-20): 0xdAC17F958D2ee523a2206206994597C13D831ec7
+- WBTC (ERC-20): 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599
+- WETH (ERC-20): 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
+
+Chain: Solana (chainId: 101) — Phase 2
+- SOL (native)
+- USDT (SPL): Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB
+
+Bitcoin via Lightning Network — Phase 3
+- BTC (satoshis via BOLT-11 invoice)
+
+## Fee Structure
+
+AnyX charges a swap spread applied to the input token amount:
+- USDT → USDC: 0.05% (near-zero slippage stablecoin pair)
+- ETH → USDC: 0.20%
+- WBTC / cbBTC → USDC: 0.25%
+- Any ERC-20 → USDC: 0.20% base + actual DEX slippage
+- BTC (Lightning) → USDC: 0.50%
+- Cross-chain (Solana, Ethereum → Base): 0.30%
+
+The payer's net cost is approximately equivalent to or better than a CEX conversion.
+No flat fees on free tier. Pro tier: no volume cap.
+
+## Smart Contracts (Base Mainnet)
+
+AnyXRouter: [deployed address — updated on mainnet launch]
+FeeCollector: [deployed address]
+Source: https://github.com/anyx-xyz/anyx/packages/contracts
+License: Apache-2.0
+
+## Error Reference
+
+All errors return: { "error": { "code": string, "message": string, "details": any } }
+
+Error codes:
+- QUOTE_NOT_FOUND: quoteId does not exist
+- QUOTE_EXPIRED: quote older than 30 seconds; call /v1/quote again
+- SWAP_FAILED: DEX aggregator failed; try a different token or retry
+- SETTLEMENT_FAILED: x402 facilitator rejected the payment
+- INVALID_INPUT: missing or malformed request field
+- RATE_LIMITED: exceeded rate limit for your API key tier
+- INSUFFICIENT_BALANCE: wallet does not hold enough of inputToken
+- SLIPPAGE_EXCEEDED: actual swap rate worse than slippageBps tolerance
+- NO_ROUTE: no DEX route found for this token pair on this chain
+- ENDPOINT_NOT_X402: the target URL did not return a 402 Payment Required
+
+## AI Agent Integration
+
+### LangChain
+npm install @anyx/langchain
+
+```typescript
+import { AnyXPaymentTool } from '@anyx/langchain'
+const tool = new AnyXPaymentTool({ wallet, preferredToken: 'ETH', preferredChainId: 8453 })
+// Add to your LangChain agent's tools array
+```
+
+### Coinbase AgentKit
+npm install @anyx/agentkit
+
+```typescript
+import { ANYX_PAY_ACTION } from '@anyx/agentkit'
+// Add ANYX_PAY_ACTION to your AgentKit actions list
+```
+
+### MCP Server (Model Context Protocol)
+npx @anyx/mcp-server
+
+Tools exposed: anyx_quote, anyx_pay, anyx_receipt, anyx_supported_tokens
+Compatible with: Claude Code, Cursor, any MCP-compatible client
+
+## Links
+
+- API documentation: https://docs.anyx.xyz
+- OpenAPI spec: https://api.anyx.xyz/openapi.json
+- Swagger UI: https://api.anyx.xyz/docs
+- npm: https://www.npmjs.com/package/@anyx/sdk
+- GitHub: https://github.com/anyx-xyz/anyx
+- Status page: https://status.anyx.xyz
+- Discord: https://discord.gg/anyx
+- Twitter/X: https://x.com/anyxyz
+
+## Optional: Full Documentation
+
+- Quickstart guide: https://docs.anyx.xyz/quickstart
+- SDK Reference: https://docs.anyx.xyz/sdk
+- REST API Reference: https://docs.anyx.xyz/api
+- Smart Contract Reference: https://docs.anyx.xyz/contracts
+- AI Agent Guide: https://docs.anyx.xyz/agents
+- Self-hosting: https://docs.anyx.xyz/self-hosting

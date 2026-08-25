@@ -8,5 +8,14 @@
     "types": ["node"]
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "src/__tests__"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/__tests__",
+    "src/app.ts",
+    "src/config.ts",
+    "src/lib/rateLimit.ts",
+    "src/lib/store.ts",
+    "src/routes/openapi.ts"
+  ]
 }

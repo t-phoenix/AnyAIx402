@@ -16,7 +16,11 @@
     "db:generate": "bun run --cwd packages/db db:generate",
     "db:migrate": "bun run --cwd packages/db db:migrate",
     "clean": "turbo run clean && rm -rf node_modules",
-    "setup": "bash scripts/setup.sh"
+    "setup": "bash scripts/setup.sh",
+    "orchestrate": "bun run orchestrator/cli.ts",
+    "config:check": "bun run --cwd packages/config src/cli.ts check",
+    "config:missing": "bun run --cwd packages/config src/cli.ts missing",
+    "config:list": "bun run --cwd packages/config src/cli.ts list"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

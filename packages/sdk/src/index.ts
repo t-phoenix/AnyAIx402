@@ -1,8 +1,10 @@
 export { UPA } from './upa';
 export { UPAError, toUPAError } from './errors';
 export { HttpClient, DEFAULT_API_BASE_URL } from './http';
+export { ApiClient, type ClientOptions } from './client';
 export { UPAEventEmitter } from './events';
 export type {
+  ApiErrorBody,
   PaymentQuote,
   PaymentReceipt,
   PayOptions,

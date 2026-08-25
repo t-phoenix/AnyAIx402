@@ -1,0 +1,82 @@
+name: Publish SDK
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      dryRun:
+        description: Pack without publishing
+        type: boolean
+        default: true
+
+jobs:
+  publish:
+    name: Publish @anyx/sdk
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.0'
+
+      - name: Check the publish prerequisites
+        id: check
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          publishable=true
+          if [ ! -f packages/sdk/package.json ]; then
+            echo "::notice title=Skipped::packages/sdk does not exist yet."
+            publishable=false
+          fi
+          if [ -z "${NPM_TOKEN}" ]; then
+            echo "::notice title=Skipped::NPM_TOKEN is not set. Create an Automation token at npmjs.com and add it as a repository secret."
+            publishable=false
+          fi
+          echo "publishable=$publishable" >> "$GITHUB_OUTPUT"
+
+      - name: Install
+        if: steps.check.outputs.publishable == 'true'
+        run: bun install --frozen-lockfile
+
+      # Never publish something that does not pass its own gates.
+      - name: Verify before publishing
+        if: steps.check.outputs.publishable == 'true'
+        run: |
+          bun run lint
+          bun run typecheck
+          bun run test
+          bun run build
+
+      - name: Confirm the tag matches the package version
+        if: steps.check.outputs.publishable == 'true' && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg=$(node -e "console.log(require('./packages/sdk/package.json').version)")
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error title=Version mismatch::tag v$tag does not match packages/sdk version $pkg"
+            exit 1
+          fi
+
+      - name: Publish
+        if: steps.check.outputs.publishable == 'true' && github.event.inputs.dryRun != 'true'
+        working-directory: packages/sdk
+        env:
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: bun publish --access public
+
+      - name: Pack only
+        if: steps.check.outputs.publishable == 'true' && github.event.inputs.dryRun == 'true'
+        working-directory: packages/sdk
+        run: bun pm pack
+
+      - name: Create the GitHub release
+        if: steps.check.outputs.publishable == 'true' && startsWith(github.ref, 'refs/tags/v') && github.event.inputs.dryRun != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" --generate-notes

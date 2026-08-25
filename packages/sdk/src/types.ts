@@ -8,7 +8,13 @@ export type UPAErrorCode =
   | 'NO_QUOTE'
   | 'NOT_A_402'
   | 'FEE_TOO_HIGH'
-  | 'WALLET_REQUIRED';
+  | 'WALLET_REQUIRED'
+  | 'UNKNOWN';
+
+/** Shape of a failed AnyX API JSON body. */
+export interface ApiErrorBody {
+  error: { code: string; message: string; details?: unknown };
+}
 
 /**
  * Task 1.7 — UPAConfig (docs/AGENTS.md). `wallet` is a viem WalletClient used to derive the

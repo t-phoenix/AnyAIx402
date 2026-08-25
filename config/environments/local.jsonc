@@ -1,0 +1,44 @@
+// Local development overlay.
+//
+// Merge these values into `config/anyx.config.jsonc`, or keep them here and
+// point at the file with ANYX_ENV=dev.
+//
+// The goal locally is to be able to run everything without owning anything:
+// no mainnet funds, no production credentials, no real customers.
+{
+  "runtime": {
+    "env": "dev",
+    "logLevel": "debug"
+  },
+
+  "network": {
+    // Base Sepolia rather than mainnet, so a mistake costs nothing.
+    "defaultChainId": 84532
+  },
+
+  "signer": {
+    // A throwaway key is acceptable here and nowhere else.
+    "mode": "local",
+    "maxUsdcPerSession": 10
+  },
+
+  "storage": {
+    // Matches docker-compose.yml. Swap for a Neon/Upstash URL if you have no Docker.
+    "databaseUrl": "postgresql://anyx:anyx@localhost:5432/anyx",
+    "redisUrl": "redis://localhost:6379"
+  },
+
+  "api": {
+    "port": 3000,
+    "baseUrl": "http://localhost:3000",
+    "corsAllowedOrigins": "*"
+  },
+
+  "orchestrator": {
+    // Serial execution is easier to follow when you are watching it work.
+    "concurrency": 1,
+    "autoApproveProduction": false,
+    // Nothing is deployed from a laptop, so these credentials are not expected.
+    "skipGates": ["fly-deploy-token", "npm-publish", "basescan"]
+  }
+}

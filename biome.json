@@ -11,10 +11,14 @@
     "ignore": [
       "**/dist/**",
       "**/.turbo/**",
+      "**/.next/**",
       "**/coverage/**",
       "**/node_modules/**",
       "**/drizzle/**",
-      "**/*.d.ts"
+      "**/*.d.ts",
+      "**/packages/contracts/**",
+      "**/.orchestrator/**",
+      "**/.anyx/**"
     ]
   },
   "formatter": {

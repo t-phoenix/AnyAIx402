@@ -37,10 +37,18 @@ bun-debug.log*
 # drizzle-kit needs the journal/snapshot in meta/ to compute future migration diffs correctly.
 *.sqlite
 
-# Foundry (Phase 2, kept out of scope here but ignore artifacts if they appear)
+# Foundry (Phase 2)
 packages/contracts/cache/
 packages/contracts/out/
 packages/contracts/broadcast/
+packages/contracts/lib/
+
+# Orchestrator runtime
+.orchestrator/
+.anyx/
+
+# Next.js
+apps/dashboard/.next/
 
 # Misc
 .DS_Store
