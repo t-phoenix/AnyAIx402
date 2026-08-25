@@ -7,6 +7,7 @@ on:
 
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,19 +17,18 @@ jobs:
           cache: npm
       - run: npm install
       - run: npm test
-      - name: Build API image (always)
+      - name: Build API image (dry-run)
         run: docker build -f apps/api/Dockerfile -t anyx-api:dry-run .
-      - name: Dry-run note
-        if: ${{ secrets.FLY_API_TOKEN == '' }}
-        run: |
-          echo "FLY_API_TOKEN is not set. Skipping flyctl deploy."
-          echo "Add the secret, then re-run this workflow for a live deploy."
-          echo "Health check after deploy: curl https://api.anyx.xyz/health"
-      - name: Deploy to Fly.io
-        if: ${{ secrets.FLY_API_TOKEN != '' }}
+      - name: Deploy to Fly.io when token is present
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
         run: |
+          if [ -z "$FLY_API_TOKEN" ]; then
+            echo "FLY_API_TOKEN is not set. Image built; skipping flyctl deploy."
+            echo "Add the GitHub secret, then re-run this workflow for a live deploy."
+            echo "Health check after deploy: curl https://api.anyx.xyz/health"
+            exit 0
+          fi
           curl -L https://fly.io/install.sh | sh
           export FLYCTL_INSTALL="$HOME/.fly"
           export PATH="$FLYCTL_INSTALL/bin:$PATH"
