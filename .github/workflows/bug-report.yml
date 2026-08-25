@@ -1,0 +1,110 @@
+name: Bug Report on CI Failure
+
+# Part of the automated bug-report -> fix loop (docs/MULTI_AGENT_SYSTEM_PLAN.md §5).
+# When ci.yml fails, open (or update, if one is already open for this branch) a GitHub issue
+# with the failing job(s), a link to the full run, and the last ~200 lines of each failing
+# job's log — labeled `needs-agent-fix` so the Orchestrator's QA/Bug-Fix Agent can pick it up.
+
+on:
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  report:
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open or update a "needs-agent-fix" issue with the failure details
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const branch = run.head_branch;
+            const runUrl = run.html_url;
+
+            const { data: jobsResp } = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: run.id,
+            });
+            const failedJobs = jobsResp.jobs.filter((j) => j.conclusion === 'failure');
+
+            let logSections = '';
+            for (const job of failedJobs) {
+              let tail = '(could not fetch logs — see the run link above)';
+              try {
+                const logResponse = await github.rest.actions.downloadJobLogsForWorkflowRun({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  job_id: job.id,
+                });
+                const text = typeof logResponse.data === 'string' ? logResponse.data : String(logResponse.data);
+                const lines = text.split('\n');
+                tail = lines.slice(-200).join('\n');
+              } catch (err) {
+                tail = `(could not fetch logs: ${err.message})`;
+              }
+              logSections += `\n\n<details><summary>Job: ${job.name} (failed)</summary>\n\n\`\`\`\n${tail}\n\`\`\`\n</details>`;
+            }
+
+            const title = `CI failure: ${run.name} on ${branch}`;
+            const body = [
+              `**Workflow run:** ${runUrl}`,
+              `**Branch:** \`${branch}\``,
+              `**Commit:** ${run.head_sha}`,
+              `**Failed job(s):** ${failedJobs.map((j) => j.name).join(', ') || '(unknown)'}`,
+              '',
+              'This issue was opened automatically by `.github/workflows/bug-report.yml` per the',
+              'automated bug-report -> fix loop in `docs/MULTI_AGENT_SYSTEM_PLAN.md` §5.',
+              'A QA/Bug-Fix agent should reproduce the failure locally, patch it, add a regression',
+              'test, and push a fix to this branch — CI will re-run automatically.',
+              logSections,
+            ].join('\n');
+
+            const label = 'needs-agent-fix';
+            const existingLabel = await github.rest.issues.listLabelsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            }).then((r) => r.data.some((l) => l.name === label)).catch(() => false);
+            if (!existingLabel) {
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: label,
+                color: 'd73a4a',
+                description: 'Automatically opened from a failing CI run — needs a bug-fix agent.',
+              }).catch(() => {});
+            }
+
+            const { data: openIssues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: label,
+            });
+            const existing = openIssues.find((i) => i.title === title);
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+              core.info(`Updated existing issue #${existing.number}`);
+            } else {
+              const created = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: [label],
+              });
+              core.info(`Opened issue #${created.data.number}`);
+            }

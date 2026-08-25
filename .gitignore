@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# Turborepo
+.turbo/
+
+# Testing / coverage
+coverage/
+.nyc_output/
+
+# Env files (never commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+bun-debug.log*
+
+# Editor / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Drizzle migrations (packages/db/drizzle/**, including meta/) are intentionally committed —
+# drizzle-kit needs the journal/snapshot in meta/ to compute future migration diffs correctly.
+*.sqlite
+
+# Foundry (Phase 2, kept out of scope here but ignore artifacts if they appear)
+packages/contracts/cache/
+packages/contracts/out/
+packages/contracts/broadcast/
+
+# Misc
+.DS_Store
+*.pem
