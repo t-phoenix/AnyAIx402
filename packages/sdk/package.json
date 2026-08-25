@@ -1,0 +1,50 @@
+{
+  "name": "@anyx/sdk",
+  "version": "0.1.0",
+  "description": "Pay any x402-gated API with any token. A drop-in fetch replacement that handles the 402, the swap and the settlement.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "x402",
+    "payments",
+    "usdc",
+    "base",
+    "eip-3009",
+    "ai-agents",
+    "micropayments"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/t-phoenix/AnyAIx402.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/t-phoenix/AnyAIx402/tree/main/packages/sdk#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "biome check src",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "clean": "rm -rf dist .turbo coverage *.tsbuildinfo"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -12,6 +12,13 @@
         "typescript": "^5.9.3",
       },
     },
+    "packages/config": {
+      "name": "@anyx/config",
+      "version": "0.1.0",
+      "bin": {
+        "anyx-config": "./src/cli.ts",
+      },
+    },
     "packages/core": {
       "name": "@anyx/core",
       "version": "0.1.0",
@@ -31,13 +38,21 @@
         "drizzle-kit": "^0.31.10",
       },
     },
+    "packages/sdk": {
+      "name": "@anyx/sdk",
+      "version": "0.1.0",
+    },
   },
   "packages": {
     "@adraffy/ens-normalize": ["@adraffy/ens-normalize@1.11.1", "", {}, "sha512-nhCBV3quEgesuf7c7KYfperqSS14T8bYuvJ8PcLJp6znkZpFc0AuW4qBtr8eKVyPPe/8RSr7sglCWPU5eaxwKQ=="],
 
+    "@anyx/config": ["@anyx/config@workspace:packages/config"],
+
     "@anyx/core": ["@anyx/core@workspace:packages/core"],
 
     "@anyx/db": ["@anyx/db@workspace:packages/db"],
+
+    "@anyx/sdk": ["@anyx/sdk@workspace:packages/sdk"],
 
     "@biomejs/biome": ["@biomejs/biome@2.5.10", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "2.5.10", "@biomejs/cli-darwin-x64": "2.5.10", "@biomejs/cli-linux-arm64": "2.5.10", "@biomejs/cli-linux-arm64-musl": "2.5.10", "@biomejs/cli-linux-x64": "2.5.10", "@biomejs/cli-linux-x64-musl": "2.5.10", "@biomejs/cli-win32-arm64": "2.5.10", "@biomejs/cli-win32-x64": "2.5.10" }, "bin": { "biome": "bin/biome" } }, "sha512-WRKXARA3kTuiV5sxqTpobJ/I0MVd4vk3pOL6wnp5az4LntFIhWTj1RWZq3DI9PCEN3lXcqy7p5aqUHzvq8AXyQ=="],
 
