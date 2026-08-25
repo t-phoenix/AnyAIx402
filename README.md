@@ -182,12 +182,27 @@ asked for.
 
 ## Status
 
-Early. Phase 0 and parts of Phase 1 exist; everything beyond is encoded in the
-task graph rather than implemented, which is the intended handoff to the agents.
-`./scripts/orchestrate plan` is the honest answer to what is done.
+Early, and specific about it. What exists and is tested:
 
-Smart contracts are authored but unaudited and undeployed. Do not point this at
-mainnet funds yet.
+| | |
+| --- | --- |
+| Core engine | Token registry, DEX quote aggregation, x402 parsing, EIP-3009 signing, facilitator failover — 99 tests, 82% coverage |
+| API | All read and payment endpoints, degraded-mode operation — 24 tests |
+| SDK | `UPA` with the `fetch` drop-in and client-side guardrails — 26 tests |
+| Contracts | `AnyXRouter` and friends — 28 Foundry tests including a fuzz run |
+| Orchestrator | Full plan/dispatch/verify/triage/fix/deploy loop — 44 tests |
+| Config | Registry, loader precedence, secret masking — 8 tests |
+| Dashboard | Four pages, verified in a browser |
+
+229 tests in total: 201 TypeScript and 28 Solidity.
+
+Cross-chain (Phase 3), Lightning (Phase 4), billing (Phase 6) and the agent
+integrations (Phase 7) are encoded in the task graph rather than implemented,
+which is the intended handoff. `./scripts/orchestrate plan` is the honest answer
+to what is done.
+
+The contracts compile and their tests pass, but they are **unaudited and
+undeployed**. Do not point them at mainnet funds.
 
 ---
 
