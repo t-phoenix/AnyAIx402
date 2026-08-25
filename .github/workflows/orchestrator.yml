@@ -1,0 +1,95 @@
+name: Orchestrator
+
+on:
+  schedule:
+    # Every weekday morning, so a failure that appeared overnight is already
+    # triaged and assigned to a domain before anyone opens the repository.
+    - cron: '0 7 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      autoFix:
+        description: Attempt automated fixes (requires a configured executor)
+        type: boolean
+        default: false
+      includeCi:
+        description: Ingest failing GitHub Actions runs
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  triage:
+    name: Health check and bug triage
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.0'
+
+      - name: Doctor
+        run: bun run orchestrator/cli.ts doctor
+        continue-on-error: true
+
+      - name: Manual gate checklist
+        run: bun run orchestrator/cli.ts gates
+        continue-on-error: true
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Failures here are the point of the run: they become bug reports rather
+      # than a red workflow.
+      - name: Run the test gates
+        run: bun run orchestrator/cli.ts test --continue
+        continue-on-error: true
+
+      - name: Triage
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event.inputs.includeCi }}" = "false" ]; then
+            bun run orchestrator/cli.ts bugs triage
+          else
+            bun run orchestrator/cli.ts bugs triage --ci
+          fi
+        continue-on-error: true
+
+      - name: Attempt automated fixes
+        if: github.event.inputs.autoFix == 'true'
+        run: bun run orchestrator/cli.ts bugs fix
+        continue-on-error: true
+
+      - name: Write the report
+        run: bun run orchestrator/cli.ts report
+
+      - name: Summarize
+        if: always()
+        run: |
+          bun run orchestrator/cli.ts status >> "$GITHUB_STEP_SUMMARY" 2>&1 || true
+          for report in .orchestrator/reports/*.md .anyx/orchestrator/reports/*.md; do
+            [ -f "$report" ] || continue
+            cat "$report" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: Upload the orchestrator artefacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: orchestrator-run
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            .orchestrator/reports/
+            .orchestrator/escalations/
+            .orchestrator/logs/
+            .orchestrator/bugs.json
+            .anyx/orchestrator/reports/
+            .anyx/orchestrator/escalations/
+            .anyx/orchestrator/logs/
+            .anyx/orchestrator/bugs.json

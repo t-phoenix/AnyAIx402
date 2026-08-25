@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#
+# Thin wrapper around the orchestrator CLI, so operators can run
+#     ./scripts/orchestrate plan
+# without knowing how it is invoked.
+
+set -euo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+if ! command -v bun >/dev/null 2>&1; then
+  if [ -x "$HOME/.bun/bin/bun" ]; then
+    export PATH="$HOME/.bun/bin:$PATH"
+  else
+    echo "bun is required but not installed. Run ./scripts/setup.sh first, or see https://bun.sh" >&2
+    exit 1
+  fi
+fi
+
+exec bun run orchestrator/cli.ts "$@"

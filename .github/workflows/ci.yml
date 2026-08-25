@@ -1,0 +1,156 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BUN_VERSION: '1.4.0'
+
+jobs:
+  # The monorepo is built incrementally by specialist agents, so every step
+  # checks that its target exists before running. A package that has not been
+  # written yet is reported as skipped, not as a failure.
+  quality:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Detect available scripts
+        id: scripts
+        run: |
+          has() { node -e "process.exit(require('./package.json').scripts?.['$1'] ? 0 : 1)"; }
+          for script in lint typecheck test build test:integration; do
+            key="${script//:/_}"
+            if has "$script"; then
+              echo "$key=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "$key=false" >> "$GITHUB_OUTPUT"
+              echo "::notice title=Skipped::no \"$script\" script in the root package.json yet"
+            fi
+          done
+
+      - name: Lint
+        if: steps.scripts.outputs.lint == 'true'
+        run: bun run lint
+
+      - name: Typecheck
+        if: steps.scripts.outputs.typecheck == 'true'
+        run: bun run typecheck
+
+      - name: Unit tests
+        if: steps.scripts.outputs.test == 'true'
+        run: bun run test
+
+      - name: Build
+        if: steps.scripts.outputs.build == 'true'
+        run: bun run build
+
+  orchestrator:
+    name: Orchestrator self-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      # The orchestrator is dependency-free by design, so it must pass without
+      # bun install having run. Verifying that here keeps it true.
+      - name: Validate the task graph
+        run: bun run orchestrator/cli.ts plan
+
+      - name: Environment and configuration health
+        run: bun run orchestrator/cli.ts doctor
+
+      - name: Orchestrator unit tests
+        run: bun test orchestrator
+
+      - name: Configuration registry tests
+        run: bun test packages/config
+
+      - name: Check .env.example matches the registry
+        run: |
+          cp .env.example /tmp/env.example.committed
+          bun run packages/config/src/cli.ts template --cwd "$PWD"
+          if ! diff -u /tmp/env.example.committed .env.example; then
+            echo "::error title=Stale .env.example::Regenerate it with \`bun run config:template\` and commit the result."
+            exit 1
+          fi
+
+  contracts:
+    name: Solidity
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Contracts are Phase 2. Until they compile, a red X here would be noise.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for a contracts package
+        id: check
+        run: |
+          if [ -f packages/contracts/foundry.toml ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Skipped::packages/contracts/foundry.toml does not exist yet"
+          fi
+
+      - uses: foundry-rs/foundry-toolchain@v1
+        if: steps.check.outputs.present == 'true'
+
+      - name: Build
+        if: steps.check.outputs.present == 'true'
+        working-directory: packages/contracts
+        run: forge build --sizes
+
+      - name: Test
+        if: steps.check.outputs.present == 'true'
+        working-directory: packages/contracts
+        env:
+          RPC_URL_BASE: ${{ secrets.RPC_URL_BASE }}
+        run: forge test -vvv
+
+  secrets-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # A payment adapter that leaks a signing key is worse than one that does
+      # not build, so this gate is deliberately not continue-on-error.
+      - name: Look for committed credentials
+        run: |
+          set -euo pipefail
+          patterns='(-----BEGIN [A-Z ]*PRIVATE KEY-----|sk_live_[0-9a-zA-Z]{20,}|rk_live_[0-9a-zA-Z]{20,}|whsec_[0-9a-zA-Z]{20,})'
+          if git grep -nIE "$patterns" -- ':!*.example*' ':!docs/reference/*' ':!.github/workflows/*'; then
+            echo "::error title=Credential committed::Remove it, rotate it, then rewrite the history that contains it."
+            exit 1
+          fi
+          # A 32-byte hex private key that is not obviously a placeholder.
+          if git grep -nIE 'PRIVATE_KEY\s*=\s*0x[0-9a-fA-F]{64}' -- ':!*.example*'; then
+            echo "::error title=Private key committed::Rotate this key immediately."
+            exit 1
+          fi
+          echo "No credentials found."

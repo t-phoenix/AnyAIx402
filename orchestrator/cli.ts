@@ -494,8 +494,16 @@ async function commandDoctor(ctx: Context): Promise<number> {
   );
 
   heading('Services');
-  const databaseUrl = config.env.DATABASE_URL;
-  const redisUrl = config.env.REDIS_URL;
+  // A key present but empty is unset, not configured. `.env.example` ships every
+  // credential with an empty value, so treating '' as configured would report a
+  // freshly bootstrapped checkout as already having a database.
+  const configured = (key: string): string | undefined => {
+    const value = config.env[key];
+    return value === undefined || value.trim() === '' ? undefined : value;
+  };
+
+  const databaseUrl = configured('DATABASE_URL');
+  const redisUrl = configured('REDIS_URL');
   if (databaseUrl === undefined)
     status('muted', 'DATABASE_URL not set; the API will run in degraded mode');
   else if (!hasBinary('psql'))
