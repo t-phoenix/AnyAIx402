@@ -1,0 +1,22 @@
+{
+  "name": "anyai-x402",
+  "private": true,
+  "packageManager": "bun@1.4.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome lint .",
+    "test": "bun test",
+    "typecheck": "tsc -b --pretty false && tsc -p packages/sdk/tsconfig.test.json --pretty false && tsc -p packages/config/tsconfig.test.json --pretty false"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.10",
+    "@types/bun": "^1.4.0",
+    "@types/node": "^26.3.0",
+    "typescript": "^7.0.2"
+  }
+}
