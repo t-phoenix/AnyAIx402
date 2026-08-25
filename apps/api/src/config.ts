@@ -105,7 +105,15 @@ export function capabilities(config: ApiConfig): Record<Capability, CapabilityRe
       config.redisUrl !== undefined
         ? { enabled: true }
         : { enabled: false, reason: 'REDIS_URL is unset; rate limits are per-process only' },
-    pricing: { enabled: true },
+    // GET /v1/tokens returns priceUsd: null without a price source, so claiming
+    // this is enabled would advertise something the API does not do.
+    pricing:
+      config.coingeckoApiKey !== undefined
+        ? { enabled: true }
+        : {
+            enabled: false,
+            reason: 'COINGECKO_API_KEY is unset; token prices are reported as null',
+          },
     lightning: { enabled: false, reason: 'the Lightning gateway is Phase 4 and not implemented' },
   };
 }

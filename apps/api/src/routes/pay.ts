@@ -2,6 +2,7 @@ import type { BestQuote, PaymentReceipt, SwapEvent } from '@anyx/core';
 import {
   formatTokenAmount,
   formatUsdc,
+  NotImplementedError,
   PrefundedFloatExecutor,
   QuoteExpiredError,
   QuoteNotFoundError,
@@ -10,6 +11,7 @@ import {
 import type { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppEnv } from '../app.js';
+import { capabilities } from '../config.js';
 
 const payRequestSchema = z.object({
   quoteId: z.string().min(1),
@@ -77,10 +79,25 @@ export function registerPayRoutes(app: Hono<AppEnv>): void {
       throw new ValidationError('endpointUrl is required when the quote did not record one.');
     }
 
+    // Settlement needs a signer to authorize the transfer and a facilitator to
+    // submit it. Without both, refuse before touching the quote: returning 200
+    // here would consume a one-time quote and hand back a receipt for a payment
+    // the recipient never received.
+    const settlement = capabilities(deps.config).settlement;
+    if (!settlement.enabled) {
+      throw new NotImplementedError(
+        `Cannot settle this payment: ${settlement.reason}. The quote has not been consumed; it stays valid until ${quote.expiresAt}.`,
+        { details: { quoteId: quote.quoteId, capability: 'settlement' } },
+      );
+    }
+
     // Phase 1 settles from the pre-funded USDC float rather than an on-chain
     // swap, per roadmap note 8. The executor interface is the seam where the
     // AnyXRouter path drops in unchanged.
-    const executor = new PrefundedFloatExecutor({ now: deps.now });
+    const executor = new PrefundedFloatExecutor({
+      now: deps.now,
+      ...(deps.floatBalance ? { float: deps.floatBalance } : {}),
+    });
     const swap = await executor.execute({
       quote,
       payer: body.walletAddress ?? '0x0000000000000000000000000000000000000000',
@@ -94,6 +111,7 @@ export function registerPayRoutes(app: Hono<AppEnv>): void {
       new Date(deps.now()).toISOString(),
     );
 
+    // Only a quote that actually produced a settlement is spent.
     await deps.store.markQuoteUsed(quote.quoteId);
     await deps.store.saveReceipt(receipt);
 

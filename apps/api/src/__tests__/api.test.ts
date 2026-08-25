@@ -46,18 +46,22 @@ function stubFetch(overrides: Record<string, () => Response> = {}): typeof fetch
   }) as unknown as typeof fetch;
 }
 
+/** A configuration in which settlement is actually possible. */
 function makeApp(options: Parameters<typeof createApp>[0] = {}): Hono<AppEnv> {
   return createApp({
     config: {
       oneInchApiKey: 'test-1inch',
       zeroExApiKey: 'test-0x',
       facilitatorUrl: 'https://facilitator.test',
+      signerPrivateKey: `0x${'11'.repeat(32)}`,
+      floatUsdc: '100000000',
       ...options.config,
     },
     store: options.store ?? new MemoryStore(),
     rateLimiter: options.rateLimiter ?? new MemoryRateLimiter(),
     fetchImpl: options.fetchImpl ?? stubFetch(),
     ...(options.now ? { now: options.now } : {}),
+    ...(options.floatBalance ? { floatBalance: options.floatBalance } : {}),
   });
 }
 
@@ -340,6 +344,48 @@ describe('POST /v1/pay', () => {
     const res = await post(app, '/v1/pay', { quoteId, walletAddress: 'not-an-address' });
     expect(res.status).toBe(400);
   });
+
+  test('refuses to settle when no signer is configured, and does not spend the quote', async () => {
+    // Consuming a one-time quote and returning a receipt for a payment that was
+    // never made is worse than refusing outright.
+    const unsignedStore = new MemoryStore();
+    const unsigned = makeApp({ store: unsignedStore, config: { signerPrivateKey: undefined } });
+
+    const created = (await (
+      await post(unsigned, '/v1/quote', {
+        endpointUrl: 'https://paid.example.com/data',
+        inputToken: 'ETH',
+        inputChainId: 8453,
+      })
+    ).json()) as { quoteId: string };
+
+    const res = await post(unsigned, '/v1/pay', { quoteId: created.quoteId });
+    expect(res.status).toBe(501);
+
+    const body = (await res.json()) as { error: { code: string; message: string } };
+    expect(body.error.code).toBe('NOT_IMPLEMENTED');
+    expect(body.error.message).toMatch(/PRIVATE_KEY/);
+
+    // The quote survives, so a correctly configured retry can still use it.
+    expect((await unsignedStore.getQuote(created.quoteId))?.status).toBe('pending');
+  });
+
+  test('refuses when the float cannot cover the payment', async () => {
+    // One atomic unit of USDC against a payment of one whole USDC.
+    const poor = makeApp({ config: { floatUsdc: '1' } });
+
+    const created = (await (
+      await post(poor, '/v1/quote', {
+        endpointUrl: 'https://paid.example.com/data',
+        inputToken: 'ETH',
+        inputChainId: 8453,
+      })
+    ).json()) as { quoteId: string };
+
+    const res = await post(poor, '/v1/pay', { quoteId: created.quoteId });
+    expect(res.status).toBe(402);
+    expect((await res.json()).error.code).toBe('INSUFFICIENT_BALANCE');
+  });
 });
 
 describe('GET /v1/receipt/:id', () => {
@@ -398,13 +444,20 @@ describe('rate limiting', () => {
     expect((await limited.json()).error.code).toBe('RATE_LIMITED');
   });
 
-  test('gives an API key the higher limit', async () => {
-    const app = makeApp({ config: { rateLimitFreeRpm: 1, rateLimitProRpm: 10 } });
+  test('an unverified API key does not buy the higher limit', async () => {
+    // Key verification does not exist yet. Until it does, honouring an
+    // arbitrary header value would make the free tier opt-out.
+    const app = makeApp({ config: { rateLimitFreeRpm: 2, rateLimitProRpm: 100 } });
 
-    for (let i = 0; i < 5; i += 1) {
-      const res = await app.request('/v1/tokens', { headers: { 'x-api-key': 'anyx_test' } });
-      expect(res.status).toBe(200);
+    const statuses: number[] = [];
+    for (let i = 0; i < 4; i += 1) {
+      const res = await app.request('/v1/tokens', {
+        headers: { 'x-api-key': 'anyx_not_a_real_key' },
+      });
+      statuses.push(res.status);
     }
+
+    expect(statuses).toEqual([200, 200, 429, 429]);
   });
 
   test('never rate-limits health, so a limited client can still diagnose itself', async () => {

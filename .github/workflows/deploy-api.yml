@@ -34,10 +34,17 @@ jobs:
         id: check
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           deployable=true
           if [ -z "${FLY_API_TOKEN}" ]; then
             echo "::notice title=Skipped::FLY_API_TOKEN is not set. Add it under Settings > Secrets and variables > Actions."
+            deployable=false
+          fi
+          # Checked here rather than mid-deploy: better to not start than to
+          # ship code and then discover its migrations cannot run.
+          if [ -z "${DATABASE_URL}" ]; then
+            echo "::notice title=Skipped::DATABASE_URL is not set, and deploying without migrations risks a schema mismatch."
             deployable=false
           fi
           if [ ! -f apps/api/Dockerfile ]; then
@@ -79,30 +86,47 @@ jobs:
       - name: Deploy
         run: flyctl deploy --app "${{ steps.target.outputs.app }}" --remote-only
 
+      # A deploy that silently skips migrations can leave the running code
+      # ahead of its schema, so a missing DATABASE_URL fails the job rather
+      # than passing with a notice.
       - name: Run migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           if [ -z "${DATABASE_URL}" ]; then
-            echo "::notice title=Skipped::DATABASE_URL is not set, so migrations were not run."
-            exit 0
+            echo "::error title=No database configured::Add the DATABASE_URL secret. Deploying without running migrations risks a schema mismatch against the code that just shipped."
+            exit 1
           fi
           bun install --frozen-lockfile
           bun run db:migrate
 
+      # /health returns 200 even in degraded mode, so a bare status check would
+      # pass on a release that cannot persist a receipt. Assert the capability
+      # too, not just reachability.
       - name: Health check
         id: health
         run: |
           url="${{ steps.target.outputs.url }}"
+          body=""
           for attempt in $(seq 1 30); do
-            if curl -fsS --max-time 10 "$url" > /dev/null; then
-              echo "Healthy after ${attempt} attempt(s)."
-              exit 0
+            if body=$(curl -fsS --max-time 10 "$url"); then
+              echo "Reachable after ${attempt} attempt(s)."
+              break
             fi
+            body=""
             sleep 5
           done
-          echo "::error title=Health check failed::$url never returned a success response."
-          exit 1
+
+          if [ -z "$body" ]; then
+            echo "::error title=Health check failed::$url never returned a success response."
+            exit 1
+          fi
+
+          echo "$body"
+          if echo "$body" | grep -q '"persistence":"memory"'; then
+            echo "::error title=Deployed in degraded mode::The release is running without a database, so receipts would be lost on restart."
+            exit 1
+          fi
 
       - name: Roll back on a failed health check
         if: failure() && steps.health.outcome == 'failure'

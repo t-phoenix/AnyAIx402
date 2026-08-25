@@ -976,6 +976,20 @@ export const CONFIG_REGISTRY: readonly ConfigKeyDefinition[] = [
     validate: numberRange(0, 100_000_000),
   }),
   def({
+    key: 'FLOAT_POOL_BALANCE_USDC',
+    group: 'bridge',
+    configPath: 'bridge.floatPoolBalanceUsdc',
+    type: 'string',
+    required: OPTIONAL,
+    secret: false,
+    description:
+      'Declared USDC float available on Base, in atomic units (6 decimals). Settlement refuses to front a payment larger than this. Distinct from FLOAT_POOL_TARGET_USDC, which is the level you are aiming for rather than the balance you actually hold.',
+    example: '10000000000',
+    howToObtain:
+      'A stand-in for reading the deployed ReservePool balance on-chain, for self-hosted and development setups. Set it to the USDC atomic balance the pool actually holds (10,000 USDC is 10000000000). Leave it unset to disable float-backed settlement entirely rather than have it assume an unlimited pool.',
+    blocksFeatures: ['floatSettlement'],
+  }),
+  def({
     key: 'FLOAT_FUNDING_WALLET',
     group: 'bridge',
     configPath: 'bridge.floatFundingWallet',

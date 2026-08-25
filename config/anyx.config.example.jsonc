@@ -184,6 +184,10 @@
     "stargateRouter": "",
     // Size the float to your expected cross-chain volume. Requires real capital.
     "floatPoolTargetUsdc": 10000,
+    // What the pool actually holds right now, in atomic USDC (6 decimals).
+    // Settlement refuses to front more than this. Leave empty to keep
+    // float-backed settlement off rather than assume an unlimited pool.
+    "floatPoolBalanceUsdc": "",
     // Wallet holding the float. Use a Safe multisig beyond testnet.
     "floatFundingWallet": "",
     "pollIntervalMs": 5000,

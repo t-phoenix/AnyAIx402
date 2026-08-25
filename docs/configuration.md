@@ -138,6 +138,7 @@ A few requirements are satisfied by any one of several keys:
 | [`CCTP_ATTESTER_URL`](#cctp_attester_url) | bridge | url | no | no | `https://iris-api.circle.com` |
 | [`STARGATE_ROUTER_ADDRESS`](#stargate_router_address) | bridge | address | no | no | — |
 | [`FLOAT_POOL_TARGET_USDC`](#float_pool_target_usdc) | bridge | number | no | no | `10000` |
+| [`FLOAT_POOL_BALANCE_USDC`](#float_pool_balance_usdc) | bridge | string | no | no | — |
 | [`FLOAT_FUNDING_WALLET`](#float_funding_wallet) | bridge | address | no | no | — |
 | [`BRIDGE_POLL_INTERVAL_MS`](#bridge_poll_interval_ms) | bridge | number | no | no | `5000` |
 | [`BRIDGE_MAX_WAIT_SECONDS`](#bridge_max_wait_seconds) | bridge | number | no | no | `900` |
@@ -981,6 +982,20 @@ Target USDC float on Base. Drives replenishment alerts and float utilisation lim
 - Example: `10000`
 
 **How to obtain.** A capital decision. The strategy note suggests a 10,000 to 50,000 USDC float for the Lightning and cross-chain paths.
+
+### FLOAT_POOL_BALANCE_USDC
+
+Declared USDC float available on Base, in atomic units (6 decimals). Settlement refuses to front a payment larger than this. Distinct from FLOAT_POOL_TARGET_USDC, which is the level you are aiming for rather than the balance you actually hold.
+
+- Config file path: `bridge.floatPoolBalanceUsdc`
+- Type: string
+- Required in: no
+- Secret: no
+- Default: none
+- Example: `10000000000`
+- Disabled without it: `floatSettlement`
+
+**How to obtain.** A stand-in for reading the deployed ReservePool balance on-chain, for self-hosted and development setups. Set it to the USDC atomic balance the pool actually holds (10,000 USDC is 10000000000). Leave it unset to disable float-backed settlement entirely rather than have it assume an unlimited pool.
 
 ### FLOAT_FUNDING_WALLET
 

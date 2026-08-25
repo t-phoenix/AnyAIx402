@@ -1,7 +1,9 @@
 import {
   AnyXError,
+  type FloatBalanceProvider,
   getSupportedTokens,
   isAnyXError,
+  StaticFloatBalanceProvider,
   toAnyXError,
   ValidationError,
 } from '@anyx/core';
@@ -23,6 +25,8 @@ export interface AppDependencies {
   readonly rateLimiter: RateLimiter;
   readonly now: () => number;
   readonly fetchImpl: typeof fetch;
+  /** Absent when no float is configured, which blocks settlement outright. */
+  readonly floatBalance: FloatBalanceProvider | undefined;
 }
 
 export interface AppOptions {
@@ -31,6 +35,7 @@ export interface AppOptions {
   rateLimiter?: RateLimiter;
   now?: () => number;
   fetchImpl?: typeof fetch;
+  floatBalance?: FloatBalanceProvider;
 }
 
 export type AppEnv = {
@@ -42,12 +47,23 @@ export type AppEnv = {
 
 export function createApp(options: AppOptions = {}): Hono<AppEnv> {
   const config: ApiConfig = { ...loadApiConfig(), ...options.config };
+
+  // A configured float is a real balance the executor must check before
+  // fronting a payment. Leaving it undefined would let every request succeed as
+  // if the pool were bottomless.
+  const floatBalance =
+    options.floatBalance ??
+    (config.floatUsdc === undefined
+      ? undefined
+      : new StaticFloatBalanceProvider(BigInt(config.floatUsdc)));
+
   const deps: AppDependencies = {
     config,
     store: options.store ?? new MemoryStore(),
     rateLimiter: options.rateLimiter ?? new MemoryRateLimiter(options.now),
     now: options.now ?? Date.now,
     fetchImpl: options.fetchImpl ?? globalThis.fetch.bind(globalThis),
+    floatBalance,
   };
 
   const app = new Hono<AppEnv>();
@@ -92,7 +108,12 @@ export function createApp(options: AppOptions = {}): Hono<AppEnv> {
     const apiKey = c.req.header('x-api-key');
     const identity =
       apiKey ?? c.req.header('cf-connecting-ip') ?? c.req.header('x-forwarded-for') ?? 'anonymous';
-    const limit = apiKey ? config.rateLimitProRpm : config.rateLimitFreeRpm;
+
+    // Key verification is 6.1-api-keys-billing and does not exist yet. Until a
+    // key can be checked against a stored hash, an unverified header buys
+    // nothing: granting the Pro limit for any string would make the free tier
+    // opt-out.
+    const limit = config.rateLimitFreeRpm;
 
     const decision = await deps.rateLimiter.check(identity, limit);
     c.header('x-ratelimit-limit', String(decision.limit));
