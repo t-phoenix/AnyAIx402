@@ -1,0 +1,11 @@
+[package]
+name = "AnyX_Move_Contracts"
+version = "1.0.0"
+
+[addresses]
+anyx_x402 = "0x1"
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-framework"

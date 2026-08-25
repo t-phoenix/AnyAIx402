@@ -1,0 +1,51 @@
+{
+  "name": "anyai-x402-multiagent-system",
+  "version": "1.0.0",
+  "description": "AnyAIx402 Multi-Agent System & Universal Payment Adapter Orchestrator",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/index.ts",
+    "orchestrator": "ts-node src/orchestrator/cli.ts",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "keywords": [
+    "anyai",
+    "x402",
+    "multi-agent",
+    "aptos",
+    "move",
+    "ethereum",
+    "base",
+    "solidity",
+    "payments",
+    "orchestrator"
+  ],
+  "author": "AnyAI Team",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "zod": "^3.23.8",
+    "ethers": "^6.13.2",
+    "viem": "^2.21.1",
+    "axios": "^1.7.7",
+    "express": "^4.21.0",
+    "cors": "^2.8.5",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/uuid": "^10.0.0",
+    "@types/jest": "^29.5.12",
+    "typescript": "^5.5.4",
+    "ts-node": "^10.9.2",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5"
+  }
+}
