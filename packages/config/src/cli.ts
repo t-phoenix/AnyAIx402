@@ -1,11 +1,11 @@
 #!/usr/bin/env bun
-import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 
-import { renderConfigurationDoc, renderEnvExample } from "./generate.ts";
-import { loadConfig, resolveEnvironment } from "./load.ts";
-import { CONFIG_GROUPS, CONFIG_REGISTRY, findKey } from "./registry.ts";
-import type { ConfigEnvironment, ConfigKeyDefinition, LoadConfigResult } from "./types.ts";
+import { renderConfigurationDoc, renderEnvExample } from './generate.ts';
+import { loadConfig, resolveEnvironment } from './load.ts';
+import { CONFIG_GROUPS, CONFIG_REGISTRY, findKey } from './registry.ts';
+import type { ConfigEnvironment, ConfigKeyDefinition, LoadConfigResult } from './types.ts';
 
 interface Args {
   readonly command: string;
@@ -45,23 +45,23 @@ function parseArgs(argv: readonly string[]): Args {
   let cwd = process.cwd();
 
   for (let index = 0; index < argv.length; index += 1) {
-    const arg = argv[index] ?? "";
-    if (arg === "--json") json = true;
-    else if (arg === "--stdout") stdout = true;
-    else if (arg === "--env") {
+    const arg = argv[index] ?? '';
+    if (arg === '--json') json = true;
+    else if (arg === '--stdout') stdout = true;
+    else if (arg === '--env') {
       const value = argv[index + 1];
       env = resolveEnvironment(value);
       index += 1;
-    } else if (arg.startsWith("--env=")) env = resolveEnvironment(arg.slice(6));
-    else if (arg === "--cwd") {
+    } else if (arg.startsWith('--env=')) env = resolveEnvironment(arg.slice(6));
+    else if (arg === '--cwd') {
       cwd = resolve(argv[index + 1] ?? cwd);
       index += 1;
-    } else if (arg.startsWith("--cwd=")) cwd = resolve(arg.slice(6));
-    else if (!arg.startsWith("-")) positional.push(arg);
+    } else if (arg.startsWith('--cwd=')) cwd = resolve(arg.slice(6));
+    else if (!arg.startsWith('-')) positional.push(arg);
   }
 
   return {
-    command: positional[0] ?? "help",
+    command: positional[0] ?? 'help',
     positional: positional.slice(1),
     env,
     json,
@@ -71,26 +71,33 @@ function parseArgs(argv: readonly string[]): Args {
 }
 
 function requirementLabel(definition: ConfigKeyDefinition, env: ConfigEnvironment): string {
-  if (definition.required[env]) return "required";
-  if (definition.blocksFeatures.length > 0) return `optional (gates ${definition.blocksFeatures.join(", ")})`;
-  return "optional";
+  if (definition.required[env]) return 'required';
+  if (definition.blocksFeatures.length > 0)
+    return `optional (gates ${definition.blocksFeatures.join(', ')})`;
+  return 'optional';
 }
 
-function print(line = ""): void {
+function print(line = ''): void {
   process.stdout.write(`${line}\n`);
 }
 
 function printHeader(result: LoadConfigResult): void {
   print(`environment: ${result.env}`);
   print(
-    `sources: process.env${result.loadedFiles.length > 0 ? `, ${result.loadedFiles.join(", ")}` : ""}, registry defaults`,
+    `sources: process.env${result.loadedFiles.length > 0 ? `, ${result.loadedFiles.join(', ')}` : ''}, registry defaults`,
   );
   print();
 }
 
 function commandCheck(result: LoadConfigResult, json: boolean): number {
   if (json) {
-    print(JSON.stringify({ env: result.env, validation: result.validation, features: result.features }, null, 2));
+    print(
+      JSON.stringify(
+        { env: result.env, validation: result.validation, features: result.features },
+        null,
+        2,
+      ),
+    );
     return result.validation.ok ? 0 : 1;
   }
 
@@ -106,7 +113,7 @@ function commandCheck(result: LoadConfigResult, json: boolean): number {
       print(`    ${entry.message}`);
       print(`    How to obtain: ${entry.howToObtain}`);
       if (entry.docsUrl) print(`    Provider docs: ${entry.docsUrl}`);
-      if (entry.blocksFeatures.length > 0) print(`    Blocks: ${entry.blocksFeatures.join(", ")}`);
+      if (entry.blocksFeatures.length > 0) print(`    Blocks: ${entry.blocksFeatures.join(', ')}`);
     }
     print();
   }
@@ -132,8 +139,8 @@ function commandCheck(result: LoadConfigResult, json: boolean): number {
   const enabled = result.featureReport.filter((entry) => entry.enabled);
   print(`Capabilities enabled: ${enabled.length}/${result.featureReport.length}`);
   if (disabled.length > 0) {
-    print(`Disabled: ${disabled.map((entry) => entry.feature).join(", ")}`);
-    print("Run `missing` or `features` for the exact keys that unlock them.");
+    print(`Disabled: ${disabled.map((entry) => entry.feature).join(', ')}`);
+    print('Run `missing` or `features` for the exact keys that unlock them.');
   }
   print();
 
@@ -178,8 +185,8 @@ function commandList(result: LoadConfigResult, json: boolean): number {
     print(`[${group.group}] ${group.title}`);
     for (const definition of definitions) {
       const resolved = result.values[definition.key];
-      const shown = resolved?.display === "" ? "(unset)" : resolved?.display ?? "(unset)";
-      const source = resolved?.source ?? "unset";
+      const shown = resolved?.display === '' ? '(unset)' : (resolved?.display ?? '(unset)');
+      const source = resolved?.source ?? 'unset';
       print(
         `  ${definition.key.padEnd(36)} ${shown.padEnd(48)} [${source}] ${requirementLabel(definition, result.env)}`,
       );
@@ -191,7 +198,9 @@ function commandList(result: LoadConfigResult, json: boolean): number {
 }
 
 function commandMissing(result: LoadConfigResult, json: boolean): number {
-  const unset = CONFIG_REGISTRY.filter((definition) => result.values[definition.key]?.raw === undefined);
+  const unset = CONFIG_REGISTRY.filter(
+    (definition) => result.values[definition.key]?.raw === undefined,
+  );
 
   if (json) {
     print(
@@ -200,7 +209,7 @@ function commandMissing(result: LoadConfigResult, json: boolean): number {
           key: definition.key,
           group: definition.group,
           required: definition.required[result.env],
-          usingDefault: result.values[definition.key]?.source === "default",
+          usingDefault: result.values[definition.key]?.source === 'default',
           default: definition.default ?? null,
           blocksFeatures: definition.blocksFeatures,
           howToObtain: definition.howToObtain,
@@ -216,12 +225,13 @@ function commandMissing(result: LoadConfigResult, json: boolean): number {
   printHeader(result);
 
   const required = unset.filter(
-    (definition) => definition.required[result.env] && result.values[definition.key]?.source !== "default",
+    (definition) =>
+      definition.required[result.env] && result.values[definition.key]?.source !== 'default',
   );
   const optional = unset.filter((definition) => !required.includes(definition));
 
   if (required.length === 0 && optional.length === 0) {
-    print("Every key in the registry has an explicit value.");
+    print('Every key in the registry has an explicit value.');
     return 0;
   }
 
@@ -235,7 +245,7 @@ function commandMissing(result: LoadConfigResult, json: boolean): number {
       print(`    How to obtain: ${definition.howToObtain}`);
       if (definition.docsUrl) print(`    Provider docs: ${definition.docsUrl}`);
       if (definition.blocksFeatures.length > 0) {
-        print(`    Disabled without it: ${definition.blocksFeatures.join(", ")}`);
+        print(`    Disabled without it: ${definition.blocksFeatures.join(', ')}`);
       }
     }
     print();
@@ -249,7 +259,7 @@ function commandMissing(result: LoadConfigResult, json: boolean): number {
     for (const definition of gating) {
       print();
       print(`  ${definition.key}  [${definition.group}]`);
-      print(`    Disabled without it: ${definition.blocksFeatures.join(", ")}`);
+      print(`    Disabled without it: ${definition.blocksFeatures.join(', ')}`);
       print(`    How to obtain: ${definition.howToObtain}`);
     }
     print();
@@ -257,7 +267,7 @@ function commandMissing(result: LoadConfigResult, json: boolean): number {
 
   if (inert.length > 0) {
     print(`Unset but harmless — a registry default applies (${inert.length}):`);
-    print(`  ${inert.map((definition) => definition.key).join(", ")}`);
+    print(`  ${inert.map((definition) => definition.key).join(', ')}`);
     print();
   }
 
@@ -273,26 +283,30 @@ function commandFeatures(result: LoadConfigResult, json: boolean): number {
   printHeader(result);
 
   for (const entry of result.featureReport) {
-    const state = entry.enabled ? "on " : "off";
+    const state = entry.enabled ? 'on ' : 'off';
     print(`  [${state}] ${entry.feature.padEnd(36)} ${entry.summary}`);
     if (!entry.enabled && entry.missingKeys.length > 0) {
-      print(`         needs: ${entry.missingKeys.join(", ")}`);
+      print(`         needs: ${entry.missingKeys.join(', ')}`);
     }
   }
   print();
   return 0;
 }
 
-function commandExplain(result: LoadConfigResult, rawKey: string | undefined, json: boolean): number {
+function commandExplain(
+  result: LoadConfigResult,
+  rawKey: string | undefined,
+  json: boolean,
+): number {
   if (rawKey === undefined) {
-    print("explain requires a key, for example: explain DATABASE_URL");
+    print('explain requires a key, for example: explain DATABASE_URL');
     return 2;
   }
 
   const definition = findKey(rawKey);
   if (!definition) {
     print(`Unknown configuration key: ${rawKey}`);
-    print("Run `list` to see every key AnyX understands.");
+    print('Run `list` to see every key AnyX understands.');
     return 2;
   }
 
@@ -303,8 +317,8 @@ function commandExplain(result: LoadConfigResult, rawKey: string | undefined, js
       JSON.stringify(
         {
           ...definition,
-          validate: definition.validate === undefined ? null : "custom",
-          current: { source: resolved?.source ?? "unset", value: resolved?.display ?? "" },
+          validate: definition.validate === undefined ? null : 'custom',
+          current: { source: resolved?.source ?? 'unset', value: resolved?.display ?? '' },
         },
         null,
         2,
@@ -314,31 +328,33 @@ function commandExplain(result: LoadConfigResult, rawKey: string | undefined, js
   }
 
   print(definition.key);
-  print("=".repeat(definition.key.length));
+  print('='.repeat(definition.key.length));
   print();
   print(definition.description);
   print();
   print(`  group:             ${definition.group}`);
   print(`  config file path:  ${definition.configPath}`);
   print(
-    `  type:              ${definition.type}${definition.enumValues ? ` (${definition.enumValues.join(" | ")})` : ""}`,
+    `  type:              ${definition.type}${definition.enumValues ? ` (${definition.enumValues.join(' | ')})` : ''}`,
   );
   print(
     `  required:          dev=${definition.required.dev} staging=${definition.required.staging} production=${definition.required.production}`,
   );
-  print(`  secret:            ${definition.secret ? "yes (masked in all output)" : "no"}`);
-  print(`  default:           ${definition.default === undefined ? "(none)" : String(definition.default)}`);
+  print(`  secret:            ${definition.secret ? 'yes (masked in all output)' : 'no'}`);
+  print(
+    `  default:           ${definition.default === undefined ? '(none)' : String(definition.default)}`,
+  );
   print(`  example:           ${definition.example}`);
   print(
-    `  current value:     ${resolved?.display === "" ? "(unset)" : resolved?.display} [${resolved?.source ?? "unset"}]`,
+    `  current value:     ${resolved?.display === '' ? '(unset)' : resolved?.display} [${resolved?.source ?? 'unset'}]`,
   );
   if (definition.blocksFeatures.length > 0) {
-    print(`  disabled without:  ${definition.blocksFeatures.join(", ")}`);
+    print(`  disabled without:  ${definition.blocksFeatures.join(', ')}`);
   }
   if (definition.docsUrl) print(`  provider docs:     ${definition.docsUrl}`);
   print();
-  print("How to obtain");
-  print("-------------");
+  print('How to obtain');
+  print('-------------');
   print(definition.howToObtain);
   print();
   return 0;
@@ -351,7 +367,7 @@ function writeGenerated(path: string, contents: string, toStdout: boolean): numb
   }
 
   mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, contents, "utf8");
+  writeFileSync(path, contents, 'utf8');
   print(`Wrote ${path}`);
   return 0;
 }
@@ -359,7 +375,7 @@ function writeGenerated(path: string, contents: string, toStdout: boolean): numb
 function main(argv: readonly string[]): number {
   const args = parseArgs(argv);
 
-  if (args.command === "help" || args.command === "--help") {
+  if (args.command === 'help' || args.command === '--help') {
     process.stdout.write(USAGE);
     return 0;
   }
@@ -367,20 +383,24 @@ function main(argv: readonly string[]): number {
   const result = loadConfig({ env: args.env, cwd: args.cwd });
 
   switch (args.command) {
-    case "check":
+    case 'check':
       return commandCheck(result, args.json);
-    case "list":
+    case 'list':
       return commandList(result, args.json);
-    case "missing":
+    case 'missing':
       return commandMissing(result, args.json);
-    case "features":
+    case 'features':
       return commandFeatures(result, args.json);
-    case "explain":
+    case 'explain':
       return commandExplain(result, args.positional[0], args.json);
-    case "template":
-      return writeGenerated(join(args.cwd, ".env.example"), renderEnvExample(), args.stdout);
-    case "docs":
-      return writeGenerated(join(args.cwd, "docs/configuration.md"), renderConfigurationDoc(), args.stdout);
+    case 'template':
+      return writeGenerated(join(args.cwd, '.env.example'), renderEnvExample(), args.stdout);
+    case 'docs':
+      return writeGenerated(
+        join(args.cwd, 'docs/configuration.md'),
+        renderConfigurationDoc(),
+        args.stdout,
+      );
     default:
       print(`Unknown command: ${args.command}`);
       process.stdout.write(USAGE);

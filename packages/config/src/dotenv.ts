@@ -9,10 +9,10 @@ export function parseDotenv(contents: string): Record<string, string> {
 
   for (const line of contents.split(/\r?\n/)) {
     const trimmed = line.trim();
-    if (trimmed === "" || trimmed.startsWith("#")) continue;
+    if (trimmed === '' || trimmed.startsWith('#')) continue;
 
-    const withoutExport = trimmed.startsWith("export ") ? trimmed.slice(7).trim() : trimmed;
-    const separator = withoutExport.indexOf("=");
+    const withoutExport = trimmed.startsWith('export ') ? trimmed.slice(7).trim() : trimmed;
+    const separator = withoutExport.indexOf('=');
     if (separator <= 0) continue;
 
     const key = withoutExport.slice(0, separator).trim();
@@ -35,14 +35,14 @@ function parseValue(rawValue: string): string {
     if (closing > 0) return rawValue.slice(1, closing);
   }
 
-  const commentIndex = rawValue.indexOf(" #");
+  const commentIndex = rawValue.indexOf(' #');
   const unquoted = commentIndex >= 0 ? rawValue.slice(0, commentIndex) : rawValue;
   return unquoted.trim();
 }
 
 function findClosingQuote(value: string, quote: string): number {
   for (let index = 1; index < value.length; index += 1) {
-    if (value[index] === "\\" && quote === '"') {
+    if (value[index] === '\\' && quote === '"') {
       index += 1;
       continue;
     }
@@ -53,9 +53,9 @@ function findClosingQuote(value: string, quote: string): number {
 
 function unescapeDoubleQuoted(value: string): string {
   return value
-    .replace(/\\n/g, "\n")
-    .replace(/\\r/g, "\r")
-    .replace(/\\t/g, "\t")
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '\r')
+    .replace(/\\t/g, '\t')
     .replace(/\\"/g, '"')
-    .replace(/\\\\/g, "\\");
+    .replace(/\\\\/g, '\\');
 }

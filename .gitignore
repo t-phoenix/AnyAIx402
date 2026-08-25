@@ -24,6 +24,16 @@ coverage/
 *.pem
 *.key
 
+# operator configuration (templates in config/ are committed, the live file is not)
+config/anyx.config.json
+config/anyx.config.jsonc
+anyx.config.json
+anyx.config.jsonc
+
+# orchestrator runtime state
+.orchestrator/
+.anyx/
+
 # foundry
 packages/contracts/out/
 packages/contracts/cache/

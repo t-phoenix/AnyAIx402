@@ -1,0 +1,299 @@
+// AnyX configuration
+// ============================================================================
+// Copy this file to `config/anyx.config.jsonc` and edit it. That file is
+// git-ignored, so your credentials never leave your machine.
+//
+//     cp config/anyx.config.example.jsonc config/anyx.config.jsonc
+//
+// Precedence, strongest first:
+//     process env  ->  .env.local  ->  .env  ->  this file  ->  built-in defaults
+//
+// So anything you set here can still be overridden by an environment variable,
+// which is how CI and production should supply secrets.
+//
+// PREFER `.env.local` FOR SECRETS. Values marked `secret` below are safest in
+// `.env.local` (or your platform's secret store), not in a JSON file you might
+// accidentally commit. Every field here maps to an environment variable of the
+// same meaning; run `bun run config:explain <KEY>` to see which.
+//
+// Useful commands:
+//     bun run config:check      what is missing for the current environment
+//     bun run config:missing    only the unset keys, with how to obtain each
+//     bun run config:features   which capabilities are on, and what unlocks the rest
+//     bun run orchestrate gates the human-in-the-loop checklist
+// ============================================================================
+{
+  "runtime": {
+    // dev | staging | production — decides which keys are mandatory.
+    "env": "dev",
+    // error | warn | info | debug
+    "logLevel": "info"
+  },
+
+  // --------------------------------------------------------------------------
+  // Network / RPC — REQUIRED for anything that touches a chain.
+  // The public defaults work for light local use and will rate-limit under load.
+  // Get dedicated endpoints from Alchemy, QuickNode, or Infura.
+  // --------------------------------------------------------------------------
+  "network": {
+    "rpcUrlBase": "https://mainnet.base.org",
+    "rpcUrlEthereum": "https://eth.llamarpc.com",
+    "rpcUrlBaseSepolia": "https://sepolia.base.org",
+    "rpcUrlSolana": "https://api.mainnet-beta.solana.com",
+    // Base mainnet. x402 settles here.
+    "defaultChainId": 8453
+  },
+
+  // --------------------------------------------------------------------------
+  // DEX aggregators — REQUIRED for EVM quotes. At least one of the two keys.
+  //   1inch: https://portal.1inch.dev/
+  //   0x:    https://dashboard.0x.org/
+  // Both are recommended so getBestQuote can compare routes and fail over.
+  // --------------------------------------------------------------------------
+  "dex": {
+    // secret — prefer ONEINCH_API_KEY in .env.local
+    "oneInchApiKey": "",
+    // secret — prefer ZEROX_API_KEY in .env.local
+    "zeroExApiKey": "",
+    "jupiterApiUrl": "https://quote-api.jup.ag/v6",
+    // Optional. Without it, CoinGecko's public tier is used and rate-limited.
+    "coingeckoApiKey": "",
+    // 50 bps = 0.5%. The PRD's default maximum slippage.
+    "defaultSlippageBps": 50,
+    // Order in which aggregators are tried.
+    "priority": "1inch,0x",
+    "quoteTimeoutMs": 2500
+  },
+
+  // --------------------------------------------------------------------------
+  // x402 facilitator — REQUIRED to settle payments.
+  // The facilitator submits transferWithAuthorization on-chain and pays gas.
+  // Create CDP credentials at https://portal.cdp.coinbase.com/
+  // Always configure a fallback: a single facilitator is a censorship point.
+  // --------------------------------------------------------------------------
+  "x402": {
+    "facilitatorUrl": "https://api.cdp.coinbase.com/platform/v2/x402",
+    "facilitatorFallbackUrl": "",
+    // Fail over to the fallback if the primary does not answer in this window.
+    "facilitatorTimeoutMs": 2000,
+    // Matches the x402 challenge's maxTimeoutSeconds.
+    "maxTimeoutSeconds": 300,
+    "cdpApiKeyId": "",
+    // secret — prefer CDP_API_KEY_SECRET in .env.local
+    "cdpApiKeySecret": ""
+  },
+
+  // --------------------------------------------------------------------------
+  // Signer — REQUIRED. Signs the EIP-3009 authorization on the payer's behalf.
+  //
+  // The whitepaper rates hot-signer compromise as a HIGH severity vector.
+  // Use `local` only for development, with a throwaway key holding minimal funds.
+  // Use `turnkey` or `lit` (MPC) for staging and production.
+  // --------------------------------------------------------------------------
+  "signer": {
+    // local | turnkey | lit
+    "mode": "local",
+    // secret — development only. Generate with: openssl rand -hex 32
+    // NEVER reuse a personal wallet key. NEVER commit this.
+    "privateKey": "",
+    // Spend cap per signer session, in USDC. Limits blast radius on compromise.
+    "maxUsdcPerSession": 1000,
+
+    // Turnkey (https://app.turnkey.com/) — production option
+    "turnkeyApiPublicKey": "",
+    // secret
+    "turnkeyApiPrivateKey": "",
+    "turnkeyOrganizationId": "",
+    "turnkeyPrivateKeyId": "",
+
+    // Lit Protocol — alternative production option
+    // secret
+    "litApiKey": "",
+    "litPkpPublicKey": "",
+    "litNetwork": "datil-dev"
+  },
+
+  // --------------------------------------------------------------------------
+  // Fees — this is the revenue model. Basis points: 20 bps = 0.20%.
+  // Applied on top of the required USDC, per the roadmap:
+  //     amountIn = amountOut_needed / (1 - feeBps/10000)
+  // --------------------------------------------------------------------------
+  "fees": {
+    "feeBps": 20,
+    "minFeeUsdc": 0.001,
+    // Stablecoin pairs have near-zero slippage, so the spread can be tighter.
+    "feeBpsStable": 5,
+    "feeBpsEth": 20,
+    "feeBpsBtc": 50,
+    "feeBpsCrosschain": 30,
+    // Hard ceiling. The router contract rejects anything above this.
+    "maxFeeBps": 100
+  },
+
+  // --------------------------------------------------------------------------
+  // Storage — REQUIRED for persistence and caching.
+  // With Docker:    docker compose up -d postgres redis
+  // Without Docker: Neon/Supabase for Postgres, Upstash for Redis.
+  // The API runs without either, in a clearly-reported degraded mode.
+  // --------------------------------------------------------------------------
+  "storage": {
+    // secret — prefer DATABASE_URL in .env.local
+    "databaseUrl": "",
+    "databasePoolMax": 10,
+    // secret — prefer REDIS_URL in .env.local
+    "redisUrl": "",
+    // DEX quotes go stale fast; the PRD binds quote validity to 30s.
+    "quoteCacheTtlSeconds": 30
+  },
+
+  "api": {
+    "port": 3000,
+    "baseUrl": "http://localhost:3000",
+    // secret — protects the admin endpoints. Generate: openssl rand -hex 32
+    "secret": "",
+    // secret — only needed if this instance calls another AnyX deployment.
+    "anyxApiKey": "",
+    // Comma-separated origins, or * for development.
+    "corsAllowedOrigins": "*",
+    "rateLimitFreeRpm": 100,
+    "rateLimitProRpm": 1000
+  },
+
+  // --------------------------------------------------------------------------
+  // Contract addresses. USDC and Permit2 are canonical and already correct.
+  // The AnyX addresses stay empty until you deploy your own contracts.
+  // --------------------------------------------------------------------------
+  "contracts": {
+    "usdcBase": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+    // Set after running the Foundry deploy script.
+    "anyxRouter": "",
+    "feeCollector": "",
+    "reservePool": "",
+    // secret — https://basescan.org/myapikey — for source verification.
+    "basescanApiKey": ""
+  },
+
+  // --------------------------------------------------------------------------
+  // Cross-chain — needed for the Solana and Ethereum-to-Base flows.
+  // CCTP takes 2-10 minutes, which exceeds the x402 timeout, so a USDC float
+  // on Base fronts the payment while the bridge settles behind it.
+  // --------------------------------------------------------------------------
+  "bridge": {
+    "cctpAttesterUrl": "https://iris-api.circle.com",
+    "stargateRouter": "",
+    // Size the float to your expected cross-chain volume. Requires real capital.
+    "floatPoolTargetUsdc": 10000,
+    // Wallet holding the float. Use a Safe multisig beyond testnet.
+    "floatFundingWallet": "",
+    "pollIntervalMs": 5000,
+    "maxWaitSeconds": 900
+  },
+
+  // --------------------------------------------------------------------------
+  // Lightning — optional, unlocks BTC payers.
+  // Fastest path to a node: https://voltage.cloud/
+  // Store the cert and macaroon OUTSIDE this repository.
+  // --------------------------------------------------------------------------
+  "lightning": {
+    "lndGrpcHost": "",
+    "lndTlsCertPath": "",
+    "lndMacaroonPath": "",
+    // Matches the x402 maxTimeoutSeconds so an invoice cannot outlive the challenge.
+    "invoiceExpirySeconds": 300,
+    // Conservative buffer on the BTC/USD rate, protecting against a move
+    // between invoice issue and settlement.
+    "btcRateBufferBps": 50
+  },
+
+  // --------------------------------------------------------------------------
+  // Billing — optional, only for the $49/month Pro plan.
+  // https://dashboard.stripe.com/ — stay in Test mode while building.
+  // --------------------------------------------------------------------------
+  "billing": {
+    // secret
+    "stripeSecretKey": "",
+    "stripeProPriceId": "",
+    // secret
+    "stripeWebhookSecret": "",
+    "stripePortalReturnUrl": ""
+  },
+
+  "deploy": {
+    // secret — fly tokens create deploy -a anyx-api
+    "flyApiToken": "",
+    "flyAppApi": "anyx-api",
+    "flyAppLightning": "anyx-lightning",
+    "healthcheckUrl": "http://localhost:3000/health",
+    // secret — npm automation token, for publishing @anyx/sdk
+    "npmToken": ""
+  },
+
+  // --------------------------------------------------------------------------
+  // Multi-agent orchestrator.
+  //
+  // The executor is how a task reaches a coding agent. It defaults to dry-run,
+  // which renders the prompt and does nothing else, so the system is safe to
+  // run before you have wired anything up.
+  //
+  //   agentCommand   run a local CLI agent per task. Placeholders:
+  //                  {{promptFile}} {{taskId}} {{agentId}} {{repoRoot}}
+  //                  The prompt is also delivered on stdin.
+  //   agentEndpoint  POST the prompt to an HTTP agent service instead.
+  //
+  // Setting either one switches the executor away from dry-run.
+  // --------------------------------------------------------------------------
+  "orchestrator": {
+    "agentCommand": "",
+    "agentEndpoint": "",
+    // How many times a bug is handed back for an automated fix before it is
+    // escalated to a human with a full reproduction report.
+    "maxFixAttempts": 3,
+    // How many specialist agents may work at once. The scheduler still refuses
+    // to run two agents whose owned paths overlap.
+    "concurrency": 3,
+    // Leave false. When false, `deploy production` requires --approve.
+    "autoApproveProduction": false,
+    "stateDir": ".anyx/orchestrator",
+
+    // Gate ids to waive, for environments where a credential genuinely does not
+    // apply. Waiving a gate does not make the capability work.
+    // Run `bun run orchestrate gates` to see the ids.
+    "skipGates": [],
+
+    // Commands behind each test stage. Override if you rename a script.
+    "test": {
+      "lint": "bun run lint",
+      "typecheck": "bun run typecheck",
+      "unit": "bun test",
+      "integration": "bun run test:integration",
+      "contracts": "forge test -vvv",
+      "coverage": "bun test --coverage"
+    },
+
+    "coverageThreshold": 80,
+
+    // Per-environment deploy pipeline. A stage whose binary is missing is
+    // skipped with a stated reason rather than failing.
+    "deploy": {
+      "production": {
+        "deployCommand": "flyctl deploy --app anyx-api --remote-only",
+        "healthCheckUrl": "https://api.anyx.xyz/health",
+        "rollbackCommand": "flyctl releases rollback --app anyx-api --yes",
+        "autoApprove": false
+      }
+    },
+
+    "bugs": {
+      // Route a failure signature to a specific agent, overriding the built-in
+      // triage rules. `pattern` is a case-insensitive regular expression.
+      // Example:
+      //   { "pattern": "flaky-e2e", "agentId": "qa", "severity": "low" }
+      "triageOverrides": [],
+      // Escalations always write a reproduction report to disk. Actually
+      // creating GitHub issues stays opt-in.
+      "draftGithubIssues": true,
+      "createGithubIssues": false
+    }
+  }
+}

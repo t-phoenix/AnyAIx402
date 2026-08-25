@@ -181,11 +181,15 @@ export function resolveConfig(layers: ConfigLayers): OrchestratorConfig {
   };
 
   const executorFile = file.executor ?? {};
+  const shellCommand = env.ANYX_EXECUTOR_COMMAND ?? env.ORCHESTRATOR_AGENT_CMD ?? file.agentCommand;
+  const httpEndpoint =
+    env.ANYX_EXECUTOR_URL ?? env.ORCHESTRATOR_AGENT_ENDPOINT ?? file.agentEndpoint;
+
   const executor: ExecutorConfig = {
     kind: pickExecutorKind(env.ANYX_EXECUTOR, executorFile.kind ?? DEFAULT_EXECUTOR.kind),
-    shell: env.ANYX_EXECUTOR_COMMAND
+    shell: shellCommand
       ? {
-          commandTemplate: env.ANYX_EXECUTOR_COMMAND,
+          commandTemplate: shellCommand,
           timeoutMs: coerceInt(
             env.ANYX_EXECUTOR_TIMEOUT_MS,
             executorFile.shell?.timeoutMs ?? DEFAULT_COMMAND_TIMEOUT_MS,
@@ -193,9 +197,9 @@ export function resolveConfig(layers: ConfigLayers): OrchestratorConfig {
           cwd: executorFile.shell?.cwd,
         }
       : executorFile.shell,
-    http: env.ANYX_EXECUTOR_URL
+    http: httpEndpoint
       ? {
-          url: env.ANYX_EXECUTOR_URL,
+          url: httpEndpoint,
           method: executorFile.http?.method ?? 'POST',
           headers: executorFile.http?.headers ?? {},
           timeoutMs: coerceInt(
@@ -210,7 +214,11 @@ export function resolveConfig(layers: ConfigLayers): OrchestratorConfig {
   for (const envName of ['local', 'staging', 'production'] as const) {
     deploy[envName] = mergeDeployStage(DEFAULT_DEPLOY[envName], file.deploy?.[envName]);
   }
-  if (coerceBool(env.ANYX_DEPLOY_PRODUCTION_AUTO_APPROVE, deploy.production.autoApprove)) {
+  const autoApproveProduction = coerceBool(
+    env.ANYX_DEPLOY_PRODUCTION_AUTO_APPROVE ?? env.ORCHESTRATOR_AUTO_APPROVE_PRODUCTION,
+    file.autoApproveProduction ?? deploy.production.autoApprove,
+  );
+  if (autoApproveProduction) {
     deploy.production = { ...deploy.production, autoApprove: true };
   }
 
@@ -219,16 +227,21 @@ export function resolveConfig(layers: ConfigLayers): OrchestratorConfig {
     .map((part) => part.trim())
     .filter((part) => part !== '');
 
+  const runtimeDirValue = env.ANYX_RUNTIME_DIR ?? env.ORCHESTRATOR_STATE_DIR ?? file.stateDir;
+
   return {
     repoRoot: layers.repoRoot,
-    runtimeDir: env.ANYX_RUNTIME_DIR
-      ? isAbsolute(env.ANYX_RUNTIME_DIR)
-        ? env.ANYX_RUNTIME_DIR
-        : join(layers.repoRoot, env.ANYX_RUNTIME_DIR)
+    runtimeDir: runtimeDirValue
+      ? isAbsolute(runtimeDirValue)
+        ? runtimeDirValue
+        : join(layers.repoRoot, runtimeDirValue)
       : join(layers.repoRoot, DEFAULT_RUNTIME_DIRNAME),
     concurrency: Math.max(
       1,
-      coerceInt(env.ANYX_CONCURRENCY, file.concurrency ?? DEFAULT_CONCURRENCY),
+      coerceInt(
+        env.ANYX_CONCURRENCY ?? env.ORCHESTRATOR_CONCURRENCY,
+        file.concurrency ?? DEFAULT_CONCURRENCY,
+      ),
     ),
     commandTimeoutMs: coerceInt(
       env.ANYX_COMMAND_TIMEOUT_MS,
@@ -248,8 +261,8 @@ export function resolveConfig(layers: ConfigLayers): OrchestratorConfig {
       maxFixAttempts: Math.max(
         1,
         coerceInt(
-          env.ANYX_MAX_FIX_ATTEMPTS,
-          file.bugs?.maxFixAttempts ?? DEFAULT_BUGS_CONFIG.maxFixAttempts,
+          env.ANYX_MAX_FIX_ATTEMPTS ?? env.ORCHESTRATOR_MAX_FIX_ATTEMPTS,
+          file.bugs?.maxFixAttempts ?? file.maxFixAttempts ?? DEFAULT_BUGS_CONFIG.maxFixAttempts,
         ),
       ),
       createGithubIssues: coerceBool(

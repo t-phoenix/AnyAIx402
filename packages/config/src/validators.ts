@@ -1,9 +1,9 @@
-import type { ConfigKeyDefinition, ConfigValidator, ConfigValue } from "./types.ts";
+import type { ConfigKeyDefinition, ConfigValidator, ConfigValue } from './types.ts';
 
 export function isUrl(raw: string): boolean {
   try {
     const url = new URL(raw);
-    return url.protocol !== "";
+    return url.protocol !== '';
   } catch {
     return false;
   }
@@ -18,32 +18,38 @@ export function isHex(raw: string): boolean {
 }
 
 export function isBooleanLike(raw: string): boolean {
-  return ["true", "false", "1", "0", "yes", "no"].includes(raw.trim().toLowerCase());
+  return ['true', 'false', '1', '0', 'yes', 'no'].includes(raw.trim().toLowerCase());
 }
 
 /** Values that mean "the operator has not filled this in yet". */
 export function isPlaceholder(raw: string): boolean {
   const normalised = raw.trim().toLowerCase();
-  if (normalised === "") return true;
-  if (normalised.startsWith("<") && normalised.endsWith(">")) return true;
-  return ["changeme", "change_me", "replace_me", "replaceme", "todo", "xxx", "..."].includes(normalised);
+  if (normalised === '') return true;
+  if (normalised.startsWith('<') && normalised.endsWith('>')) return true;
+  return ['changeme', 'change_me', 'replace_me', 'replaceme', 'todo', 'xxx', '...'].includes(
+    normalised,
+  );
 }
 
 export function typeErrorFor(definition: ConfigKeyDefinition, raw: string): string | null {
   switch (definition.type) {
-    case "number":
+    case 'number':
       return Number.isFinite(Number(raw)) ? null : `expected a number, received "${raw}"`;
-    case "boolean":
+    case 'boolean':
       return isBooleanLike(raw) ? null : `expected true or false, received "${raw}"`;
-    case "url":
+    case 'url':
       return isUrl(raw) ? null : `expected an absolute URL (including scheme), received "${raw}"`;
-    case "address":
-      return isEvmAddress(raw) ? null : "expected a 20-byte EVM address (0x followed by 40 hex characters)";
-    case "hex":
-      return isHex(raw) ? null : "expected a 0x-prefixed hex string";
-    case "enum": {
+    case 'address':
+      return isEvmAddress(raw)
+        ? null
+        : 'expected a 20-byte EVM address (0x followed by 40 hex characters)';
+    case 'hex':
+      return isHex(raw) ? null : 'expected a 0x-prefixed hex string';
+    case 'enum': {
       const allowed = definition.enumValues ?? [];
-      return allowed.includes(raw) ? null : `expected one of ${allowed.join(", ")}, received "${raw}"`;
+      return allowed.includes(raw)
+        ? null
+        : `expected one of ${allowed.join(', ')}, received "${raw}"`;
     }
     default:
       return null;
@@ -52,10 +58,10 @@ export function typeErrorFor(definition: ConfigKeyDefinition, raw: string): stri
 
 export function coerce(definition: ConfigKeyDefinition, raw: string): ConfigValue {
   switch (definition.type) {
-    case "number":
+    case 'number':
       return Number(raw);
-    case "boolean":
-      return ["true", "1", "yes"].includes(raw.trim().toLowerCase());
+    case 'boolean':
+      return ['true', '1', 'yes'].includes(raw.trim().toLowerCase());
     default:
       return raw;
   }
@@ -73,7 +79,7 @@ export function numberRange(min: number, max: number): ConfigValidator {
 export function exactHexLength(bytes: number): ConfigValidator {
   const characters = bytes * 2;
   return (raw) => {
-    if (!isHex(raw)) return "expected a 0x-prefixed hex string";
+    if (!isHex(raw)) return 'expected a 0x-prefixed hex string';
     if (raw.length - 2 !== characters) {
       return `expected ${bytes} bytes (${characters} hex characters after 0x), received ${raw.length - 2}`;
     }
@@ -84,9 +90,9 @@ export function exactHexLength(bytes: number): ConfigValidator {
 export function oneOfProtocols(...protocols: readonly string[]): ConfigValidator {
   return (raw) => {
     if (!isUrl(raw)) return `expected an absolute URL (including scheme), received "${raw}"`;
-    const protocol = new URL(raw).protocol.replace(":", "");
+    const protocol = new URL(raw).protocol.replace(':', '');
     if (!protocols.includes(protocol)) {
-      return `expected a ${protocols.join(" or ")} URL, received "${protocol}"`;
+      return `expected a ${protocols.join(' or ')} URL, received "${protocol}"`;
     }
     return null;
   };

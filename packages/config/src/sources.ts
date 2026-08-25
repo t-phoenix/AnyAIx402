@@ -1,10 +1,10 @@
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
-import { parseDotenv } from "./dotenv.ts";
-import { flattenJson, parseJsonc } from "./jsonc.ts";
-import { CONFIG_REGISTRY } from "./registry.ts";
-import type { ConfigEnvironment, ConfigSource } from "./types.ts";
+import { parseDotenv } from './dotenv.ts';
+import { flattenJson, parseJsonc } from './jsonc.ts';
+import { CONFIG_REGISTRY } from './registry.ts';
+import type { ConfigEnvironment, ConfigSource } from './types.ts';
 
 export interface SourceLayer {
   readonly source: ConfigSource;
@@ -13,11 +13,11 @@ export interface SourceLayer {
   readonly file?: string;
 }
 
-const CONFIG_FILE_CANDIDATES = ["config/anyx.config.jsonc", "config/anyx.config.json"];
+const CONFIG_FILE_CANDIDATES = ['config/anyx.config.jsonc', 'config/anyx.config.json'];
 
 function readFileIfPresent(path: string): string | undefined {
   if (!existsSync(path)) return undefined;
-  return readFileSync(path, "utf8");
+  return readFileSync(path, 'utf8');
 }
 
 function dotenvLayer(cwd: string, file: string, source: ConfigSource): SourceLayer | undefined {
@@ -43,7 +43,7 @@ function jsonLayer(cwd: string, file: string, source: ConfigSource): SourceLayer
 
   for (const definition of CONFIG_REGISTRY) {
     const value = flat[definition.configPath];
-    if (value !== undefined && value !== "") values[definition.key] = value;
+    if (value !== undefined && value !== '') values[definition.key] = value;
   }
 
   return { source, values, file };
@@ -77,23 +77,23 @@ export function collectLayers(options: {
     if (value !== undefined) processValues[key] = value;
   }
 
-  const layers: SourceLayer[] = [{ source: "process.env", values: processValues }];
+  const layers: SourceLayer[] = [{ source: 'process.env', values: processValues }];
   if (options.skipFiles) return layers;
 
-  const localEnv = dotenvLayer(options.cwd, ".env.local", ".env.local");
+  const localEnv = dotenvLayer(options.cwd, '.env.local', '.env.local');
   if (localEnv) layers.push(localEnv);
 
-  const baseEnv = dotenvLayer(options.cwd, ".env", ".env");
+  const baseEnv = dotenvLayer(options.cwd, '.env', '.env');
   if (baseEnv) layers.push(baseEnv);
 
   const overlay = firstJsonLayer(
     options.cwd,
     [`config/environments/${options.env}.jsonc`, `config/environments/${options.env}.json`],
-    "config/environments",
+    'config/environments',
   );
   if (overlay) layers.push(overlay);
 
-  const base = firstJsonLayer(options.cwd, CONFIG_FILE_CANDIDATES, "config/anyx.config");
+  const base = firstJsonLayer(options.cwd, CONFIG_FILE_CANDIDATES, 'config/anyx.config');
   if (base) layers.push(base);
 
   return layers;

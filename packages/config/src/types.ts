@@ -7,29 +7,29 @@
  * environment variable name.
  */
 
-export type ConfigEnvironment = "dev" | "staging" | "production";
+export type ConfigEnvironment = 'dev' | 'staging' | 'production';
 
-export const CONFIG_ENVIRONMENTS: readonly ConfigEnvironment[] = ["dev", "staging", "production"];
+export const CONFIG_ENVIRONMENTS: readonly ConfigEnvironment[] = ['dev', 'staging', 'production'];
 
-export type ConfigValueType = "string" | "number" | "boolean" | "url" | "address" | "hex" | "enum";
+export type ConfigValueType = 'string' | 'number' | 'boolean' | 'url' | 'address' | 'hex' | 'enum';
 
 export type ConfigValue = string | number | boolean;
 
 export type ConfigGroup =
-  | "runtime"
-  | "network"
-  | "dex"
-  | "x402"
-  | "signer"
-  | "fees"
-  | "storage"
-  | "api"
-  | "contracts"
-  | "bridge"
-  | "lightning"
-  | "billing"
-  | "deploy"
-  | "orchestrator";
+  | 'runtime'
+  | 'network'
+  | 'dex'
+  | 'x402'
+  | 'signer'
+  | 'fees'
+  | 'storage'
+  | 'api'
+  | 'contracts'
+  | 'bridge'
+  | 'lightning'
+  | 'billing'
+  | 'deploy'
+  | 'orchestrator';
 
 export interface ConfigGroupMeta {
   readonly group: ConfigGroup;
@@ -38,30 +38,30 @@ export interface ConfigGroupMeta {
 }
 
 export type FeatureName =
-  | "evmQuotes"
-  | "solanaQuotes"
-  | "priceOracle"
-  | "onchainSwap"
-  | "floatSettlement"
-  | "persistence"
-  | "quoteCache"
-  | "rateLimiting"
-  | "adminApi"
-  | "localSigner"
-  | "mpcSigner"
-  | "cdpFacilitator"
-  | "facilitatorFailover"
-  | "crosschainCctp"
-  | "stargateBridge"
-  | "reserveFloat"
-  | "lightning"
-  | "stripeBilling"
-  | "testnetDeploys"
-  | "contractVerification"
-  | "apiDeploy"
-  | "sdkPublish"
-  | "orchestratorRemoteExecutor"
-  | "orchestratorProductionAutoApprove";
+  | 'evmQuotes'
+  | 'solanaQuotes'
+  | 'priceOracle'
+  | 'onchainSwap'
+  | 'floatSettlement'
+  | 'persistence'
+  | 'quoteCache'
+  | 'rateLimiting'
+  | 'adminApi'
+  | 'localSigner'
+  | 'mpcSigner'
+  | 'cdpFacilitator'
+  | 'facilitatorFailover'
+  | 'crosschainCctp'
+  | 'stargateBridge'
+  | 'reserveFloat'
+  | 'lightning'
+  | 'stripeBilling'
+  | 'testnetDeploys'
+  | 'contractVerification'
+  | 'apiDeploy'
+  | 'sdkPublish'
+  | 'orchestratorRemoteExecutor'
+  | 'orchestratorProductionAutoApprove';
 
 export interface RequiredByEnvironment {
   readonly dev: boolean;
@@ -112,13 +112,13 @@ export interface RequirementRule {
 }
 
 export type ConfigSource =
-  | "process.env"
-  | ".env.local"
-  | ".env"
-  | "config/environments"
-  | "config/anyx.config"
-  | "default"
-  | "unset";
+  | 'process.env'
+  | '.env.local'
+  | '.env'
+  | 'config/environments'
+  | 'config/anyx.config'
+  | 'default'
+  | 'unset';
 
 export interface ResolvedValue {
   readonly key: string;
@@ -135,7 +135,7 @@ export type ResolvedValues = Readonly<Record<string, ResolvedValue>>;
 
 export interface ValidationIssue {
   readonly key: string;
-  readonly group: ConfigGroup | "multiple";
+  readonly group: ConfigGroup | 'multiple';
   readonly message: string;
   readonly howToObtain: string;
   readonly docsUrl?: string;

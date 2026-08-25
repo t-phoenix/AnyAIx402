@@ -97,7 +97,13 @@ export interface ConfigSource {
   readonly keys: number;
 }
 
-/** Deep-partial shape accepted from `config/anyx.config.json`. */
+/**
+ * Deep-partial shape accepted from `config/anyx.config.json(c)`.
+ *
+ * The flat aliases mirror the `orchestrator.*` paths in the `@anyx/config`
+ * registry, so a single operator-facing file drives both loaders rather than
+ * asking anyone to keep two shapes in sync.
+ */
 export interface OrchestratorConfigFile {
   readonly concurrency?: number;
   readonly commandTimeoutMs?: number;
@@ -110,4 +116,10 @@ export interface OrchestratorConfigFile {
   readonly skipGates?: readonly string[];
   readonly env?: Readonly<Record<string, string>>;
   readonly orchestrator?: OrchestratorConfigFile;
+
+  readonly maxFixAttempts?: number;
+  readonly autoApproveProduction?: boolean;
+  readonly agentCommand?: string;
+  readonly agentEndpoint?: string;
+  readonly stateDir?: string;
 }

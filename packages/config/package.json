@@ -15,14 +15,18 @@
   "bin": {
     "anyx-config": "./src/cli.ts"
   },
-  "files": ["src", "README.md"],
+  "files": [
+    "src",
+    "README.md"
+  ],
   "scripts": {
     "check": "bun run src/cli.ts check",
     "list": "bun run src/cli.ts list",
     "missing": "bun run src/cli.ts missing",
     "template": "bun run src/cli.ts template --cwd ../..",
     "docs": "bun run src/cli.ts docs --cwd ../..",
-    "test": "bun test src"
+    "test": "bun test src",
+    "typecheck": "tsc -p tsconfig.json"
   },
   "engines": {
     "bun": ">=1.1.0"

@@ -1,0 +1,86 @@
+// Production overlay.
+//
+// Everything here handles other people's money. Two rules follow from that:
+// no raw signing keys, and no unattended production deploys.
+//
+// Supply every secret through the platform's secret store or the environment,
+// never through a file. `bun run config:check --env production` enforces the
+// requirements this overlay assumes.
+{
+  "runtime": {
+    "env": "production",
+    "logLevel": "info"
+  },
+
+  "network": {
+    // Base mainnet. Use dedicated, paid RPC endpoints — the public ones will
+    // rate-limit and a rate-limited quote is a failed payment.
+    "defaultChainId": 8453
+  },
+
+  "signer": {
+    // MPC is mandatory. `config:check --env production` rejects mode "local".
+    "mode": "turnkey",
+    // Caps the loss if the signer session is ever compromised. Set it to the
+    // smallest number that does not interfere with real traffic.
+    "maxUsdcPerSession": 5000
+  },
+
+  "x402": {
+    // A fallback is not optional in production. If Coinbase CDP refuses to
+    // settle, payments stop until a second facilitator can take over.
+    "facilitatorFallbackUrl": "https://x402.halowerk.com/facilitator",
+    "facilitatorTimeoutMs": 2000
+  },
+
+  "dex": {
+    // Tighter than the 0.5% default: production has deeper liquidity and a bad
+    // fill is worse than a retry.
+    "defaultSlippageBps": 30,
+    "priority": "1inch,0x"
+  },
+
+  "storage": {
+    "databasePoolMax": 30,
+    "quoteCacheTtlSeconds": 30
+  },
+
+  "api": {
+    "baseUrl": "https://api.anyx.xyz",
+    // Never a wildcard in production.
+    "corsAllowedOrigins": "https://anyx.xyz,https://docs.anyx.xyz",
+    "rateLimitFreeRpm": 100,
+    "rateLimitProRpm": 1000
+  },
+
+  "bridge": {
+    // Size against real cross-chain demand; running dry means cross-chain
+    // payments miss the x402 timeout window.
+    "floatPoolTargetUsdc": 25000
+  },
+
+  "deploy": {
+    "flyAppApi": "anyx-api",
+    "healthcheckUrl": "https://api.anyx.xyz/health"
+  },
+
+  "orchestrator": {
+    "concurrency": 2,
+    // Leave this false. Turning it on lets an autonomous loop ship to
+    // production with no human in it.
+    "autoApproveProduction": false,
+    // More patience before escalating: a production failure deserves a human
+    // sooner rather than a fourth automated guess.
+    "maxFixAttempts": 2,
+    "coverageThreshold": 80,
+    "deploy": {
+      "production": {
+        "deployCommand": "flyctl deploy --app anyx-api --remote-only",
+        "healthCheckUrl": "https://api.anyx.xyz/health",
+        "healthCheckRetries": 30,
+        "rollbackCommand": "flyctl releases rollback --app anyx-api --yes",
+        "autoApprove": false
+      }
+    }
+  }
+}
