@@ -1,0 +1,30 @@
+{
+  "name": "@anyx/config",
+  "version": "0.1.0",
+  "description": "Typed, dependency-free configuration registry and loader for AnyX",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./registry": "./src/registry.ts",
+    "./cli": "./src/cli.ts"
+  },
+  "bin": {
+    "anyx-config": "./src/cli.ts"
+  },
+  "files": ["src", "README.md"],
+  "scripts": {
+    "check": "bun run src/cli.ts check",
+    "list": "bun run src/cli.ts list",
+    "missing": "bun run src/cli.ts missing",
+    "template": "bun run src/cli.ts template --cwd ../..",
+    "docs": "bun run src/cli.ts docs --cwd ../..",
+    "test": "bun test src"
+  },
+  "engines": {
+    "bun": ">=1.1.0"
+  }
+}
